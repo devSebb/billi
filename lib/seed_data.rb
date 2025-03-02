@@ -17,28 +17,17 @@ module SeedData
         amount: 72.10,
         currency: "USD",
         category: "Shops",
-        sub_category: "Supermarkets and Groceries",
         merchant: "Walmart",
         transaction_date: "2023-09-24",
-        country: "US",
-        city: "Poway",
-        region: "CA",
-        payment_channel: "in store",
-        personal_finance_category: "GENERAL_MERCHANDISE",
-        transaction_id: "lPNjeW1nR6CDn5okmGQ6hEpMo4lLNoSrzqDje"
+        country: "US"
       },
       {
         amount: 28.34,
         currency: "USD",
         category: "Food and Drink",
-        sub_category: "Fast Food",
         merchant: "Burger King",
         transaction_date: "2023-09-28",
-        country: "US",
-        payment_channel: "online",
-        personal_finance_category: "FOOD_AND_DRINK",
-        transaction_id: "yhnUVvtcGGcCKU0bcz8PDQr5ZUxUXebUvbKC0",
-        pending: true
+        country: "US"
       },
       {
         amount: 156.50,
@@ -106,7 +95,6 @@ module SeedData
         transaction_id: "vWxYzA1bCdEfGh6iJkLmNoPqRsTuVwX"
       }
     ]
-    Rails.logger.debug "SeedData loaded #{data.length} transactions"
     data
   end
 end

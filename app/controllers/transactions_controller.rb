@@ -17,8 +17,6 @@ class TransactionsController < ApplicationController
   def upload_csv
     if params[:file].present?
       begin
-        Rails.logger.info "Starting CSV processing..."
-
         # Verify file is a CSV
         unless params[:file].content_type == "text/csv"
           raise "Invalid file type. Please upload a CSV file."
@@ -51,9 +49,7 @@ class TransactionsController < ApplicationController
               transaction_date: date || Date.today
             )
             transaction_count += 1
-            Rails.logger.debug "Created transaction #{transaction_count}: #{transaction.attributes}"
           rescue StandardError => e
-            Rails.logger.error "Error processing row #{index + 1}: #{e.message}"
             next
           end
         end
@@ -64,12 +60,9 @@ class TransactionsController < ApplicationController
           raise "Could not process any rows. Please check your CSV format."
         end
       rescue StandardError => e
-        Rails.logger.error "CSV Processing Error: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
         redirect_to root_path, alert: "Error processing CSV: #{e.message}"
       end
     else
-      Rails.logger.warn "No file uploaded"
       redirect_to root_path, alert: "Please choose a CSV file."
     end
   end
@@ -77,9 +70,7 @@ class TransactionsController < ApplicationController
   def process_mapped_csv
     if session[:temp_csv_id].present? && params[:mapping].present?
       begin
-        Rails.logger.info "Starting CSV processing with mapping: #{params[:mapping]}"
         temp_data = current_user.temp_csv_data.find(session[:temp_csv_id])
-        Rails.logger.info "Found temp data with #{temp_data.data.size} rows"
 
         # Clear existing transactions
         current_user.transactions.destroy_all
@@ -87,20 +78,12 @@ class TransactionsController < ApplicationController
         transaction_count = 0
         temp_data.data.each_with_index do |row, index|
           begin
-            # Log the raw row data
-            Rails.logger.info "Processing row #{index + 1}: #{row.inspect}"
-
             # Extract and clean values
             amount = clean_amount(row[params[:mapping][:amount]])
             date = clean_date(row[params[:mapping][:transaction_date]])
 
-            Rails.logger.info "Cleaned amount: #{amount.inspect}, date: #{date.inspect}"
-
             # Skip invalid rows
-            if amount.nil?
-              Rails.logger.info "Skipping row #{index + 1} - invalid amount"
-              next
-            end
+            next if amount.nil?
 
             mapped_data = {
               amount: amount,
@@ -114,10 +97,7 @@ class TransactionsController < ApplicationController
             # Create the transaction
             current_user.transactions.create!(mapped_data)
             transaction_count += 1
-            Rails.logger.info "Successfully created transaction #{transaction_count}: #{mapped_data.inspect}"
           rescue StandardError => e
-            Rails.logger.error "Error processing row #{index + 1}: #{e.message}"
-            Rails.logger.error "Row data: #{row.inspect}"
             next
           end
         end
@@ -127,11 +107,9 @@ class TransactionsController < ApplicationController
           session.delete(:temp_csv_id)
           redirect_to root_path, notice: "Successfully processed #{transaction_count} transactions."
         else
-          Rails.logger.error "Failed to process any rows. Sample data: #{temp_data.data.first.inspect}"
           raise "Could not process any rows. Please ensure the amount column contains numeric values."
         end
       rescue StandardError => e
-        Rails.logger.error "Processing Error: #{e.message}"
         redirect_to root_path, alert: "Error processing data: #{e.message}"
       end
     else
@@ -162,8 +140,6 @@ class TransactionsController < ApplicationController
   def load_test_data
     if user_signed_in?
       begin
-        Rails.logger.info "Loading test data for user #{current_user.email}..."
-
         # Clear existing transactions
         current_user.transactions.destroy_all
 
@@ -182,14 +158,10 @@ class TransactionsController < ApplicationController
             country: tx_data[:country]
           )
           transactions_created += 1
-          Rails.logger.debug "Created transaction #{transactions_created}: #{transaction.attributes}"
         end
 
-        Rails.logger.info "Successfully created #{transactions_created} test transactions"
         redirect_to root_path, notice: "Successfully loaded #{transactions_created} test transactions."
       rescue StandardError => e
-        Rails.logger.error "Error loading test data: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
         redirect_to root_path, alert: "Error loading test data: #{e.message}"
       end
     else
@@ -232,7 +204,6 @@ class TransactionsController < ApplicationController
     required_headers = [ "amount", "currency", "country", "category", "merchant", "transaction_date" ]
     missing_headers = required_headers - headers
     if missing_headers.any?
-      Rails.logger.error "Missing headers: #{missing_headers.join(', ')}"
       raise "Missing required headers: #{missing_headers.join(', ')}"
     end
   end
@@ -263,7 +234,6 @@ class TransactionsController < ApplicationController
     # Return the absolute value (we want positive numbers)
     amount.abs
   rescue StandardError => e
-    Rails.logger.warn "Error cleaning amount '#{value}': #{e.message}"
     nil
   end
 
@@ -326,7 +296,6 @@ class TransactionsController < ApplicationController
       # If none of the formats work, try letting Ruby parse it
       Date.parse(cleaned)
     rescue StandardError => e
-      Rails.logger.warn "Could not parse date '#{value}': #{e.message}"
       Date.today  # Always return a valid date
     end
   end
@@ -352,7 +321,6 @@ class TransactionsController < ApplicationController
       mapping[field] = match || headers.find { |h| h.include?(possible_matches[0]) } || headers.first
     end
 
-    Rails.logger.debug "Auto-mapped columns: #{mapping.inspect}"
     mapping
   end
 end

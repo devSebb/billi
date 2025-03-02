@@ -1,8 +1,16 @@
 Rails.application.routes.draw do
   devise_for :users
 
-  root to: "home#index"
+  # Authenticated root path
+  authenticated :user do
+    root "home#index", as: :authenticated_root
+  end
+
+  # Non-authenticated root path
+  root "home#landing"
+
   get "dashboard", to: "home#dashboard"
+  get "landing", to: "home#landing"
 
   # Transactions routes
   resources :transactions, only: [] do

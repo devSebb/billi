@@ -1,4 +1,5 @@
-<div class="w-full">
+<%= render "shared/navbar" %>
+<div class="w-full p-8">
   <% if user_signed_in? %>
     <!-- Upload Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -20,29 +21,38 @@
           </div>
         <% end %>
 
-        <%= form_tag upload_csv_transactions_path,
-                     multipart: true,
-                     method: :post,
-                     authenticity_token: true,
-                     enforce_utf8: true do %>
-          <div class="mb-4">
-            <%= label_tag :file, "Choose CSV file", class: "block text-sm font-medium text-gray-700 mb-1" %>
-            <%= file_field_tag :file,
-                class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#19272f] file:text-white hover:file:bg-gray-700 transition-colors duration-200",
-                accept: ".csv" %>
-          </div>
-          <div class="flex gap-3">
+        <div class="flex gap-3">
+          <!-- CSV Upload Form -->
+          <%= form_tag upload_csv_transactions_path,
+                       multipart: true,
+                       method: :post,
+                       authenticity_token: true,
+                       enforce_utf8: true,
+                       class: "flex-1" do %>
+            <div class="mb-4">
+              <%= label_tag :file, "Choose CSV file", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= file_field_tag :file,
+                  class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#19272f] file:text-white hover:file:bg-gray-700 transition-colors duration-200",
+                  accept: ".csv" %>
+            </div>
             <%= submit_tag "Upload CSV",
-                class: "flex-1 bg-[#19272f] hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200" %>
+                class: "w-full bg-[#19272f] hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200" %>
+          <% end %>
 
-            <%= form_with url: load_test_data_transactions_path,
-                          method: :post,
-                          class: "flex-1" do |f| %>
-              <%= f.submit "Load Test Data",
-                  class: "w-full bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f] text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200" %>
-            <% end %>
-          </div>
-        <% end %>
+          <!-- Load Test Data Form (separate form) -->
+          <%= form_with url: load_test_data_transactions_path,
+                        method: :post,
+                        class: "flex-1" do |f| %>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Or load sample data</label>
+              <div class="text-sm text-gray-500 mb-4">
+                Load pre-defined test transactions to try out the app.
+              </div>
+            </div>
+            <%= f.submit "Load Test Data",
+                class: "w-full bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f] text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200" %>
+          <% end %>
+        </div>
       </div>
 
       <!-- Quick Stats Cards -->
@@ -90,13 +100,7 @@
 
       <% if @transactions.present? %>
         <div class="overflow-x-auto">
-          <!-- Debug info -->
-          <% if Rails.env.development? %>
-            <div class="bg-gray-100 p-4 mb-4 rounded">
-              <p>Transaction count: <%= @transactions.count %></p>
-              <p>Chart data: <%= @chart_data.inspect %></p>
-            </div>
-          <% end %>
+
 
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -231,9 +235,6 @@
             <i class="fas fa-receipt text-6xl"></i>
           </div>
           <p class="text-gray-500">No transactions yet. Upload a CSV file or load test data to get started.</p>
-          <% if Rails.env.development? %>
-            <p class="text-sm text-gray-400 mt-2">Debug: User signed in: <%= user_signed_in? %></p>
-          <% end %>
         </div>
       <% end %>
     </div>
