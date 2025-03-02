@@ -1,0 +1,52 @@
+<nav class="bg-[#19272f] shadow-lg">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-20 items-center justify-between">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <%= link_to root_path, class: "flex items-center" do %>
+            <span class="logo-font text-3xl">
+              <span class="text-[#ffd500]">B</span><span class="text-white">illi</span>
+            </span>
+          <% end %>
+        </div>
+
+        <div class="hidden md:block ml-10">
+          <div class="flex items-center space-x-6">
+            <%= link_to root_path,
+                class: "#{current_page?(root_path) ? 'text-[#ffd500]' : 'text-white'} hover:text-[#ffd500] transition-colors duration-200 text-sm font-medium flex items-center gap-2" do %>
+              <i class="fas fa-home"></i> Home
+            <% end %>
+
+            <% if user_signed_in? %>
+              <%= link_to dashboard_path,
+                  class: "#{current_page?(dashboard_path) ? 'text-[#ffd500]' : 'text-white'} hover:text-[#ffd500] transition-colors duration-200 text-sm font-medium flex items-center gap-2" do %>
+                <i class="fas fa-chart-line"></i> Dashboard
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden md:block">
+        <div class="flex items-center space-x-4">
+          <% if user_signed_in? %>
+            <%= button_to destroy_user_session_path,
+                method: :delete,
+                class: "text-white hover:text-[#ffd500] transition-colors duration-200 text-sm font-medium flex items-center gap-2" do %>
+              <i class="fas fa-sign-out-alt"></i> Sign Out
+            <% end %>
+          <% else %>
+            <%= link_to new_user_session_path,
+                class: "text-white hover:text-[#ffd500] transition-colors duration-200 text-sm font-medium flex items-center gap-2" do %>
+              <i class="fas fa-sign-in-alt"></i> Sign In
+            <% end %>
+            <%= link_to new_user_registration_path,
+                class: "bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f] px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium flex items-center gap-2" do %>
+              <i class="fas fa-user-plus"></i> Sign Up
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

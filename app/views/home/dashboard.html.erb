@@ -1,0 +1,27 @@
+<div class="container mx-auto p-8">
+  <h1 class="text-4xl font-bold mb-10">Dashboard</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Summary Cards -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-2">Total Transactions</h3>
+      <p class="text-3xl font-bold"><%= @transactions.count %></p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-2">Total Spent</h3>
+      <p class="text-3xl font-bold">
+        $<%= number_with_precision(@transactions.sum(:amount), precision: 2) %>
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-lg font-semibold mb-2">Average Transaction</h3>
+      <p class="text-3xl font-bold">
+        $<%= number_with_precision(@transactions.average(:amount), precision: 2) %>
+      </p>
+    </div>
+  </div>
+
+  <!-- Add more dashboard content as needed -->
+</div>

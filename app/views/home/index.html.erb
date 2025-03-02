@@ -1,0 +1,256 @@
+<div class="w-full">
+  <% if user_signed_in? %>
+    <!-- Upload Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Upload CSV Card -->
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+        <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center gap-2">
+          <i class="fas fa-upload text-[#ffd500]"></i> Upload Transactions
+        </h2>
+
+        <% if flash[:notice] %>
+          <div class="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+            <%= flash[:notice] %>
+          </div>
+        <% end %>
+
+        <% if flash[:alert] %>
+          <div class="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+            <%= flash[:alert] %>
+          </div>
+        <% end %>
+
+        <%= form_tag upload_csv_transactions_path,
+                     multipart: true,
+                     method: :post,
+                     authenticity_token: true,
+                     enforce_utf8: true do %>
+          <div class="mb-4">
+            <%= label_tag :file, "Choose CSV file", class: "block text-sm font-medium text-gray-700 mb-1" %>
+            <%= file_field_tag :file,
+                class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#19272f] file:text-white hover:file:bg-gray-700 transition-colors duration-200",
+                accept: ".csv" %>
+          </div>
+          <div class="flex gap-3">
+            <%= submit_tag "Upload CSV",
+                class: "flex-1 bg-[#19272f] hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200" %>
+
+            <%= form_with url: load_test_data_transactions_path,
+                          method: :post,
+                          class: "flex-1" do |f| %>
+              <%= f.submit "Load Test Data",
+                  class: "w-full bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f] text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Quick Stats Cards -->
+      <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Total Transactions</h3>
+          <p class="text-2xl font-bold text-[#19272f]"><%= @transactions&.count || 0 %></p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Total Spent</h3>
+          <p class="text-2xl font-bold text-[#19272f]">
+            $<%= number_with_precision(@transactions&.sum(:amount) || 0, precision: 2) %>
+          </p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+          <h3 class="text-sm font-medium text-gray-500 mb-1">Average Transaction</h3>
+          <p class="text-2xl font-bold text-[#19272f]">
+            $<%= number_with_precision(@transactions&.average(:amount) || 0, precision: 2) %>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 mb-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-[#19272f] flex items-center gap-2">
+          <i class="fas fa-list text-[#ffd500]"></i> Transaction History
+        </h2>
+
+        <% if @transactions.present? %>
+          <%= button_to reset_transactions_path,
+              method: :delete,
+              class: "bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2",
+              data: {
+                turbo_confirm: "Are you sure? This cannot be undone.",
+                turbo: false
+              } do %>
+            <i class="fas fa-trash-alt"></i> Reset All
+          <% end %>
+        <% end %>
+      </div>
+
+      <% if @transactions.present? %>
+        <div class="overflow-x-auto">
+          <!-- Debug info -->
+          <% if Rails.env.development? %>
+            <div class="bg-gray-100 p-4 mb-4 rounded">
+              <p>Transaction count: <%= @transactions.count %></p>
+              <p>Chart data: <%= @chart_data.inspect %></p>
+            </div>
+          <% end %>
+
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @transactions.each do |tx| %>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= tx.transaction_date.strftime("%Y-%m-%d") %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.country %></td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.merchant %></td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.category %></td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <%= number_with_precision(tx.amount, precision: 2) %>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.currency %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="mt-8">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h3 class="text-xl font-semibold text-[#19272f] flex items-center gap-2">
+              <i class="fas fa-chart-bar text-[#ffd500]"></i> Spending Analysis
+            </h3>
+
+            <div class="flex flex-wrap gap-4">
+              <div class="w-48">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Group By</label>
+                <select id="chartGroupBy" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
+                  <option value="category">Category</option>
+                  <option value="country">Country</option>
+                  <option value="currency">Currency</option>
+                  <option value="merchant">Merchant</option>
+                </select>
+              </div>
+
+              <div class="w-48">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Aggregate</label>
+                <select id="chartAggregate" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
+                  <option value="sum">Total Amount</option>
+                  <option value="count">Transaction Count</option>
+                  <option value="avg">Average Amount</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <canvas id="expenseChart" class="w-full" height="300"></canvas>
+        </div>
+
+        <!-- Chart.js Script -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+          let chart = null;
+
+          function updateChart() {
+            const groupBy = document.getElementById('chartGroupBy').value;
+            const aggregate = document.getElementById('chartAggregate').value;
+
+            fetch(`/transactions/chart_data?group_by=${groupBy}&aggregate=${aggregate}`)
+              .then(response => response.json())
+              .then(data => {
+                if (chart) {
+                  chart.destroy();
+                }
+
+                const ctx = document.getElementById('expenseChart').getContext('2d');
+                chart = new Chart(ctx, {
+                  type: 'bar',
+                  data: {
+                    labels: data.labels,
+                    datasets: [{
+                      label: data.label,
+                      data: data.values,
+                      backgroundColor: 'rgba(255, 213, 0, 0.5)',  // Using your yellow color
+                      borderColor: '#ffd500',
+                      borderWidth: 1
+                    }]
+                  },
+                  options: {
+                    responsive: true,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          callback: function(value) {
+                            if (aggregate === 'count') return Math.round(value);
+                            return '$ ' + value.toFixed(2);
+                          }
+                        }
+                      }
+                    },
+                    plugins: {
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            if (aggregate === 'count') {
+                              return `${context.dataset.label}: ${Math.round(context.raw)}`;
+                            }
+                            return `${context.dataset.label}: $ ${context.raw.toFixed(2)}`;
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              });
+          }
+
+          document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('chartGroupBy').addEventListener('change', updateChart);
+            document.getElementById('chartAggregate').addEventListener('change', updateChart);
+            updateChart();
+          });
+        </script>
+      <% else %>
+        <div class="text-center py-12">
+          <div class="text-gray-400 mb-4">
+            <i class="fas fa-receipt text-6xl"></i>
+          </div>
+          <p class="text-gray-500">No transactions yet. Upload a CSV file or load test data to get started.</p>
+          <% if Rails.env.development? %>
+            <p class="text-sm text-gray-400 mt-2">Debug: User signed in: <%= user_signed_in? %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <h1 class="text-4xl font-bold text-[#19272f] mb-4">Welcome to Billi</h1>
+      <p class="text-gray-600 mb-8">Your personal finance tracker</p>
+      <div class="flex justify-center gap-4">
+        <%= link_to new_user_session_path,
+            class: "bg-[#19272f] hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200" do %>
+          Sign In
+        <% end %>
+        <%= link_to new_user_registration_path,
+            class: "bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f] px-6 py-3 rounded-lg transition-colors duration-200" do %>
+          Sign Up
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

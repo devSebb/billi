@@ -1,0 +1,18 @@
+class Transaction < ApplicationRecord
+  belongs_to :user
+
+  validates :amount, presence: true, numericality: { greater_than: 0 }
+  validates :currency, presence: true
+  validates :category, presence: true
+  validates :merchant, presence: true
+  validates :transaction_date, presence: true
+  validates :country, presence: true
+
+  after_create :log_creation
+
+  private
+
+  def log_creation
+    Rails.logger.debug "Created transaction: #{attributes.inspect}"
+  end
+end
