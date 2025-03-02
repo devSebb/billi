@@ -1,0 +1,131 @@
+<% content_for :head do %>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<% end %>
+
+<script>
+  let barChart = null;
+  let doughnutChart = null;
+
+  function updateBarChart() {
+    const groupBy = document.getElementById('barChartGroupBy').value;
+    const aggregate = document.getElementById('barChartAggregate').value;
+
+    fetch(`/transactions/chart_data?group_by=${groupBy}&aggregate=${aggregate}`)
+      .then(response => response.json())
+      .then(data => {
+        if (barChart) {
+          barChart.destroy();
+        }
+
+        const ctx = document.getElementById('expenseBarChart').getContext('2d');
+        barChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: data.labels,
+            datasets: [{
+              label: data.label,
+              data: data.values,
+              backgroundColor: 'rgba(255, 213, 0, 0.5)',
+              borderColor: '#ffd500',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function(value) {
+                    if (aggregate === 'count') return Math.round(value);
+                    return '$ ' + value.toFixed(2);
+                  }
+                }
+              }
+            },
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    if (aggregate === 'count') {
+                      return `${context.dataset.label}: ${Math.round(context.raw)}`;
+                    }
+                    return `${context.dataset.label}: $ ${context.raw.toFixed(2)}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      });
+  }
+
+  function updateDoughnutChart() {
+    const groupBy = document.getElementById('doughnutChartGroupBy').value;
+
+    fetch(`/transactions/chart_data?group_by=${groupBy}&aggregate=sum`)
+      .then(response => response.json())
+      .then(data => {
+        if (doughnutChart) {
+          doughnutChart.destroy();
+        }
+
+        // Calculate total for display, ensuring numeric values
+        const total = data.values.reduce((a, b) => Number(a) + Number(b), 0);
+        document.getElementById('doughnutTotal').textContent = `Total: $${total.toFixed(2)}`;
+
+        const ctx = document.getElementById('expenseDoughnutChart').getContext('2d');
+        doughnutChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: data.labels,
+            datasets: [{
+              data: data.values.map(Number), // Ensure all values are numbers
+              backgroundColor: [
+                'rgba(255, 213, 0, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(75, 192, 192, 0.5)',
+                'rgba(153, 102, 255, 0.5)',
+                'rgba(255, 159, 64, 0.5)',
+              ],
+              borderColor: [
+                '#ffd500',
+                '#36A2EB',
+                '#FF6384',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40',
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'right',
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const value = Number(context.raw);
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${context.label}: $${value.toFixed(2)} (${percentage}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('barChartGroupBy').addEventListener('change', updateBarChart);
+    document.getElementById('barChartAggregate').addEventListener('change', updateBarChart);
+    document.getElementById('doughnutChartGroupBy').addEventListener('change', updateDoughnutChart);
+    updateBarChart();
+    updateDoughnutChart();
+  });
+</script>

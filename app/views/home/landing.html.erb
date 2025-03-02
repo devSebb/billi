@@ -1,7 +1,8 @@
-<div class="bg-[#19272f]">
+<div class="bg-[#19272f] min-h-screen">
   <!-- Hero Section with Gradient Background -->
   <div class="relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#19272f] via-[#1a1f35] to-[#0f172a] z-0"></div>
+    <!-- Gradient Background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-[#19272f] via-[#1a1f35] to-[#0f172a]"></div>
 
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden opacity-10">
@@ -10,14 +11,11 @@
     </div>
 
     <!-- Main Content -->
-    <div class="relative z-10">
-      <!-- Navigation -->
-      <%= render "shared/navbar" %>
-
+    <div class="relative">
       <!-- Hero Content -->
       <div class="container mx-auto px-6 pt-20 pb-32">
         <div class="max-w-4xl mx-auto text-center">
-          <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+          <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 mt-24 leading-tight">
             Your Complete Financial Picture in <span class="text-[#ffd500]">One Place</span>
           </h1>
           <p class="text-xl text-gray-300 mb-12 leading-relaxed">
@@ -43,7 +41,7 @@
 
           <!-- Integration Logos -->
           <div class="text-center z-20">
-            <p class="text-sm text-gray-400">Securely connect with 11,000+ financial institutions</p>
+            <p class="text-sm text-gray-400 mb-4">Securely connect with 11,000+ financial institutions</p>
             <div class="flex justify-center items-center gap-8 ">
               <%= image_tag "logos/plaid-logo.svg", alt: "Plaid", class: "h-32" %>
               <%= image_tag "logos/visa-logo.png", alt: "Visa", class: "h-10" %>

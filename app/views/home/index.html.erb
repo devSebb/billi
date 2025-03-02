@@ -1,5 +1,4 @@
-<%= render "shared/navbar" %>
-<div class="w-full p-8">
+<div class="w-full p-8 mt-32">
   <% if user_signed_in? %>
     <!-- Upload Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -138,97 +137,60 @@
             <h3 class="text-xl font-semibold text-[#19272f] flex items-center gap-2">
               <i class="fas fa-chart-bar text-[#ffd500]"></i> Spending Analysis
             </h3>
+          </div>
 
-            <div class="flex flex-wrap gap-4">
-              <div class="w-48">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Group By</label>
-                <select id="chartGroupBy" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
-                  <option value="category">Category</option>
-                  <option value="country">Country</option>
-                  <option value="currency">Currency</option>
-                  <option value="merchant">Merchant</option>
-                </select>
+          <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Bar Chart Section -->
+            <div class="w-full lg:w-1/2">
+              <div class="flex flex-wrap gap-4 mb-4">
+                <div class="w-48">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Group By</label>
+                  <select id="barChartGroupBy" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
+                    <option value="category">Category</option>
+                    <option value="country">Country</option>
+                    <option value="currency">Currency</option>
+                    <option value="merchant">Merchant</option>
+                  </select>
+                </div>
+
+                <div class="w-48">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Aggregate</label>
+                  <select id="barChartAggregate" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
+                    <option value="sum">Total Amount</option>
+                    <option value="count">Transaction Count</option>
+                    <option value="avg">Average Amount</option>
+                  </select>
+                </div>
               </div>
+              <div class="relative" style="height: 300px;">
+                <canvas id="expenseBarChart"></canvas>
+              </div>
+            </div>
 
-              <div class="w-48">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Aggregate</label>
-                <select id="chartAggregate" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
-                  <option value="sum">Total Amount</option>
-                  <option value="count">Transaction Count</option>
-                  <option value="avg">Average Amount</option>
-                </select>
+            <!-- Doughnut Chart Section -->
+            <div class="w-full lg:w-1/2">
+              <div class="flex flex-wrap gap-4 mb-4">
+                <div class="w-48">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Group By</label>
+                  <select id="doughnutChartGroupBy" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#ffd500] focus:ring focus:ring-[#ffd500] focus:ring-opacity-50">
+                    <option value="category">Category</option>
+                    <option value="country">Country</option>
+                    <option value="merchant">Merchant</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="relative w-full" style="height: 300px;">
+                  <canvas id="expenseDoughnutChart"></canvas>
+                </div>
+                <div id="doughnutTotal" class="text-sm text-gray-500 mt-2"></div>
               </div>
             </div>
           </div>
-
-          <canvas id="expenseChart" class="w-full" height="300"></canvas>
         </div>
 
-        <!-- Chart.js Script -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-          let chart = null;
+        <%= render 'shared/charts' %>
 
-          function updateChart() {
-            const groupBy = document.getElementById('chartGroupBy').value;
-            const aggregate = document.getElementById('chartAggregate').value;
-
-            fetch(`/transactions/chart_data?group_by=${groupBy}&aggregate=${aggregate}`)
-              .then(response => response.json())
-              .then(data => {
-                if (chart) {
-                  chart.destroy();
-                }
-
-                const ctx = document.getElementById('expenseChart').getContext('2d');
-                chart = new Chart(ctx, {
-                  type: 'bar',
-                  data: {
-                    labels: data.labels,
-                    datasets: [{
-                      label: data.label,
-                      data: data.values,
-                      backgroundColor: 'rgba(255, 213, 0, 0.5)',  // Using your yellow color
-                      borderColor: '#ffd500',
-                      borderWidth: 1
-                    }]
-                  },
-                  options: {
-                    responsive: true,
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        ticks: {
-                          callback: function(value) {
-                            if (aggregate === 'count') return Math.round(value);
-                            return '$ ' + value.toFixed(2);
-                          }
-                        }
-                      }
-                    },
-                    plugins: {
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            if (aggregate === 'count') {
-                              return `${context.dataset.label}: ${Math.round(context.raw)}`;
-                            }
-                            return `${context.dataset.label}: $ ${context.raw.toFixed(2)}`;
-                          }
-                        }
-                      }
-                    }
-                  }
-                });
-              });
-          }
-
-          document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('chartGroupBy').addEventListener('change', updateChart);
-            document.getElementById('chartAggregate').addEventListener('change', updateChart);
-            updateChart();
-          });
-        </script>
       <% else %>
         <div class="text-center py-12">
           <div class="text-gray-400 mb-4">
