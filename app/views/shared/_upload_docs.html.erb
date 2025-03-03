@@ -1,0 +1,70 @@
+<div class="dropdown dropdown-left">
+  <div tabindex="0" role="button" class="btn bg-[#19272f] hover:bg-gray-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2">
+    <i class="fas fa-upload text-[#ffd500]"></i>
+    Upload Documents
+  </div>
+  <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-96 p-2 shadow-md">
+    <li>
+      <div class="bg-white flex flex-col rounded-xl shadow-md p-6 border border-gray-100">
+        <h2 class="text-xl font-semibold text-[#19272f] mb-6 flex items-center gap-2">
+          <i class="fas fa-upload text-[#ffd500]"></i> Upload Documents
+        </h2>
+
+        <div class="space-y-6">
+          <!-- CSV Upload Form -->
+          <%= form_tag upload_csv_transactions_path,
+                       multipart: true,
+                       method: :post,
+                       authenticity_token: true,
+                       enforce_utf8: true do %>
+            <div class="mb-3">
+              <%= label_tag :file, "Choose CSV file", class: "block text-sm font-medium text-gray-700 mb-1" %>
+              <%= file_field_tag :file,
+                  class: "block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#19272f] file:text-white hover:file:bg-gray-700 transition-colors duration-200",
+                  accept: ".csv" %>
+            </div>
+            <%= submit_tag "Upload CSV",
+                class: "w-full bg-[#19272f] hover:bg-gray-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-200" %>
+          <% end %>
+
+          <!-- Load Test Data Form -->
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white text-gray-500">or</span>
+            </div>
+          </div>
+
+          <%= form_with url: load_test_data_transactions_path,
+                        method: :post do |f| %>
+            <%= f.submit "Load Test Data",
+                class: "w-full bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f] text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-200" %>
+          <% end %>
+
+          <!-- Plaid Connection Form -->
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white text-gray-500">or</span>
+            </div>
+          </div>
+
+          <%= form_with url: plaid_link_path, method: :post do |f| %>
+            <div class="mb-3">
+              <div class="text-sm text-gray-500">
+                Securely connect your bank account using Plaid
+              </div>
+            </div>
+            <%= f.submit "Connect Bank Account",
+                class: "w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-200",
+                data: { controller: "plaid", action: "click->plaid#openLink" } %>
+          <% end %>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>

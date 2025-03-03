@@ -17,39 +17,67 @@ class TransactionsController < ApplicationController
   def upload_csv
     if params[:file].present?
       begin
-        # Verify file is a CSV
         unless params[:file].content_type == "text/csv"
           raise "Invalid file type. Please upload a CSV file."
         end
 
-        # Clear existing transactions
-        current_user.transactions.destroy_all
-
-        # Read CSV data
         csv_data = CSV.read(params[:file].tempfile, headers: true)
 
-        # Auto-map columns based on closest match
+        Rails.logger.info "CSV Headers found: #{csv_data.headers.inspect}"
+
+        # Print first row for debugging
+        first_row = csv_data.first
+        Rails.logger.info "First row data: #{first_row.to_h.inspect}"
+
         mapping = auto_map_columns(csv_data.headers)
 
+        Rails.logger.info "Column mapping created: #{mapping.inspect}"
+
+        # Clear existing transactions only if we have valid data
+        current_user.transactions.destroy_all
+
         transaction_count = 0
+        errors = []
+
         csv_data.each_with_index do |row, index|
           begin
-            # Extract and clean values using the auto-mapped columns
-            amount = clean_amount(row[mapping[:amount]])
-            date = clean_date(row[mapping[:transaction_date]])
+            row_hash = row.to_h
 
-            next if amount.nil?
+            raw_amount = row_hash[mapping[:amount]]
+            amount = clean_amount(raw_amount)
+
+            if amount.nil?
+              errors << "Row #{index + 1}: Invalid amount format (raw value: '#{raw_amount}')"
+              next
+            end
+
+            # Get other fields
+            date = clean_date(row_hash[mapping[:transaction_date]])
+            original_category = clean_string(row_hash[mapping[:category]], default: "Other")
+            merchant = clean_string(row_hash[mapping[:merchant]], default: "Unknown")
+
+            # Determine category based on amount
+            # If amount is negative, it's a payment, otherwise use original category
+            category = if amount.negative?
+              "Payment"  # Override category for negative amounts
+            else
+              original_category
+            end
 
             transaction = current_user.transactions.create!(
-              amount: amount,
-              currency: clean_string(row[mapping[:currency]], default: "USD"),
-              country: clean_string(row[mapping[:country]], default: "Unknown"),
-              category: clean_string(row[mapping[:category]], default: "Other"),
-              merchant: clean_string(row[mapping[:merchant]], default: "Unknown"),
+              amount: amount,  # Store the amount with its sign
+              currency: "USD",
+              country: "US",
+              category: category,
+              merchant: merchant,
               transaction_date: date || Date.today
             )
+
+            Rails.logger.info "Created transaction: amount=#{amount}, category=#{category}"
             transaction_count += 1
           rescue StandardError => e
+            errors << "Row #{index + 1}: #{e.message}"
+            Rails.logger.error "Error on row #{index + 1}: #{e.full_message}"
             next
           end
         end
@@ -57,9 +85,14 @@ class TransactionsController < ApplicationController
         if transaction_count > 0
           redirect_to root_path, notice: "Successfully processed #{transaction_count} transactions."
         else
-          raise "Could not process any rows. Please check your CSV format."
+          error_message = "Could not process any rows. Please check your CSV format.\n"
+          error_message += "Detected headers: #{csv_data.headers.join(', ')}\n"
+          error_message += "Column mapping: #{mapping.inspect}\n"
+          error_message += "Errors: #{errors.join('; ')}"
+          raise error_message
         end
       rescue StandardError => e
+        Rails.logger.error "CSV Processing Error: #{e.full_message}"
         redirect_to root_path, alert: "Error processing CSV: #{e.message}"
       end
     else
@@ -214,27 +247,30 @@ class TransactionsController < ApplicationController
     # Convert to string and clean up
     amount_str = value.to_s.strip
 
-    # Remove any currency symbols and common prefixes
-    amount_str = amount_str.gsub(/[£$€¥]|USD|EUR|GBP|JPY/i, "")
+    Rails.logger.info "Processing amount: '#{amount_str}'"
 
-    # Remove any parentheses and their contents
-    amount_str = amount_str.gsub(/\(.*?\)/, "")
+    # Detect negative amount (either starts with minus or is in parentheses)
+    is_negative = amount_str.start_with?("-") || amount_str.match?(/^\(.*\)$/)
 
-    # Replace various separators and remove spaces
-    amount_str = amount_str.gsub(/[,\s]/, "")
+    # Clean the amount string
+    cleaned_str = amount_str
+      .gsub(/[\(\)]/, "")
+      .gsub(/[$,]/, "")
+      .strip
 
-    # Handle negative amounts marked with parentheses or minus sign
-    is_negative = amount_str.include?("(") || amount_str.include?("-")
-    amount_str = amount_str.gsub(/[-()]/, "")
+    begin
+      # Convert to float
+      amount = Float(cleaned_str)
+      # Make negative if needed
+      amount = -amount.abs if is_negative
 
-    # Convert to float
-    amount = amount_str.to_f
-    amount = -amount if is_negative
+      Rails.logger.info "Processed amount: #{amount}"
 
-    # Return the absolute value (we want positive numbers)
-    amount.abs
-  rescue StandardError => e
-    nil
+      amount
+    rescue ArgumentError => e
+      Rails.logger.error "Failed to parse amount '#{amount_str}': #{e.message}"
+      nil
+    end
   end
 
   def clean_string(value, default: "")
@@ -243,8 +279,8 @@ class TransactionsController < ApplicationController
     # Remove special characters and extra spaces
     cleaned = value.to_s
                   .strip
-                  .gsub(/[^\w\s-]/, "") # Remove special characters except hyphen
-                  .gsub(/\s+/, " ")     # Replace multiple spaces with single space
+                  .gsub(/[^\w\s-]/, "")
+                  .gsub(/\s+/, " ")
 
     cleaned.presence || default
   end
@@ -264,7 +300,7 @@ class TransactionsController < ApplicationController
       cleaned = value.to_s
                     .gsub(/^["']|["']$/, "")
                     .strip
-                    .gsub(/[^\w\s.\/-]/, "") # Fixed regex: moved hyphen to end of character class
+                    .gsub(/[^\w\s.\/-]/, "")
 
       # Try various date formats
       date_formats = [
@@ -301,24 +337,41 @@ class TransactionsController < ApplicationController
   end
 
   def auto_map_columns(headers)
-    headers = headers.map { |h| h.to_s.downcase.strip }
+    original_headers = headers
+    headers_downcase = headers.map { |h| h.to_s.downcase.strip }
 
     mapping = {}
+    # Map amount column: any header that includes "amount"
+    if headers_downcase.any? { |h| h.include?("amount") }
+      mapping[:amount] = original_headers[headers_downcase.index { |h| h.include?("amount") }]
+    end
 
-    # Define possible matches for each required field
-    field_matches = {
-      amount: [ "amount", "sum", "total", "price", "cost", "value" ],
-      currency: [ "currency", "cur", "ccy" ],
-      country: [ "country", "region", "location", "geo" ],
-      category: [ "category", "type", "transaction type", "trans type", "description" ],
-      merchant: [ "merchant", "vendor", "store", "shop", "payee", "description" ],
-      transaction_date: [ "date", "transaction date", "trans date", "payment date" ]
-    }
+    # Map transaction_date column: any header that includes "date"
+    if headers_downcase.any? { |h| h.include?("date") }
+      mapping[:transaction_date] = original_headers[headers_downcase.index { |h| h.include?("date") }]
+    end
 
-    # Find best match for each field
-    field_matches.each do |field, possible_matches|
-      match = possible_matches.find { |m| headers.include?(m) }
-      mapping[field] = match || headers.find { |h| h.include?(possible_matches[0]) } || headers.first
+    # Optional mappings – if available in CSV
+    if headers_downcase.any? { |h| h.include?("category") }
+      mapping[:category] = original_headers[headers_downcase.index { |h| h.include?("category") }]
+    end
+
+    if headers_downcase.any? { |h| h.include?("merchant") }
+      mapping[:merchant] = original_headers[headers_downcase.index { |h| h.include?("merchant") }]
+    end
+
+    if headers_downcase.any? { |h| h.include?("currency") }
+      mapping[:currency] = original_headers[headers_downcase.index { |h| h.include?("currency") }]
+    end
+
+    if headers_downcase.any? { |h| h.include?("country") }
+      mapping[:country] = original_headers[headers_downcase.index { |h| h.include?("country") }]
+    end
+
+    # Ensure required fields are found
+    unless mapping[:amount] && mapping[:transaction_date]
+      Rails.logger.error "Missing required fields. Headers available: #{original_headers.join(', ')}"
+      raise "Could not find required fields in CSV. Need an 'amount' column and a 'transaction date' column."
     end
 
     mapping

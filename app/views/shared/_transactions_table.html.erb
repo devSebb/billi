@@ -1,0 +1,71 @@
+<!-- Transactions Section -->
+<div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 mb-8" data-controller="dropdown">
+  <% if @transactions.present? %>
+    <!-- Collapsible Header -->
+    <div class="flex justify-between items-center cursor-pointer"
+         data-action="click->dropdown#toggle">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-list text-[#ffd500]"></i>
+        <h2 class="text-xl font-semibold text-[#19272f]">Transaction History</h2>
+      </div>
+      <div class="flex items-center gap-4">
+        <%= button_to reset_transactions_path,
+            method: :delete,
+            class: "bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2",
+            data: {
+              turbo_confirm: "Are you sure? This cannot be undone.",
+              turbo: false
+            } do %>
+          <i class="fas fa-trash-alt"></i> Reset All
+        <% end %>
+        <i class="fas fa-chevron-down text-black transition-transform duration-300" data-dropdown-target="arrow"></i>
+      </div>
+    </div>
+
+    <!-- Collapsible Content -->
+    <div class="overflow-hidden transition-all duration-300 max-h-0" data-dropdown-target="content">
+      <p class="text-sm text-gray-500 italic mt-4 mb-6">
+        Data from <%= @transactions.minimum(:transaction_date).strftime("%B %d, %Y") %> to
+        <%= @transactions.maximum(:transaction_date).strftime("%B %d, %Y") %>
+      </p>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @transactions.each do |tx| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= tx.transaction_date.strftime("%Y-%m-%d") %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.country %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.merchant %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.category %></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= number_with_precision(tx.amount, precision: 2) %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.currency %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <div class="text-gray-400 mb-4">
+        <i class="fas fa-receipt text-6xl"></i>
+      </div>
+      <p class="text-gray-500">No transactions yet. Upload a CSV file or load test data to get started.</p>
+    </div>
+  <% end %>
+</div>
