@@ -1,0 +1,28 @@
+<div class="max-w-2xl mx-auto p-6 mt-24">
+  <h1 class="text-3xl font-bold mb-6">Your Profile</h1>
+
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <h2 class="text-xl font-semibold mb-4">Account Details</h2>
+    <p><strong>Email:</strong> <%= @user.email %></p>
+    <% if @user.name.present? %>
+      <p><strong>Name:</strong> <%= @user.name %></p>
+    <% end %>
+
+
+    <h2 class="text-xl font-semibold mt-6 mb-4">Linked Accounts</h2>
+    <% if @plaid_items.any? %>
+      <ul class="list-disc pl-5">
+        <% @plaid_items.each do |item| %>
+          <li>Bank Account (ID: <%= item.id %>) - Connected on <%= item.created_at.strftime('%Y-%m-%d') %></li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p>No bank accounts linked yet. <%= link_to 'Connect a bank', '#', id: 'connect-bank', class: 'text-blue-500 hover:underline' %></p>
+    <% end %>
+
+    <div class="mt-6">
+      <%= link_to 'Edit Profile', edit_user_registration_path, class: 'text-blue-500 hover:underline' %>
+      | <%= link_to 'Sign Out', destroy_user_session_path, method: :delete, class: 'text-red-500 hover:underline' %>
+    </div>
+  </div>
+</div>

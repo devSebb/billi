@@ -27,4 +27,12 @@ Rails.application.routes.draw do
   # Render dynamic PWA files from app/views/pwa/*
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+
+  # Add Plaid routes
+  post "plaid/create_link_token", to: "plaid#create_link_token"
+  post "plaid/exchange_public_token", to: "plaid#exchange_public_token"
+  post "plaid/link", to: "plaid#link", as: :plaid_link
+
+  # Add user profile route
+  get "profile", to: "user_profile#show", as: :user_profile
 end
