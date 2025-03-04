@@ -6,7 +6,6 @@ class TransactionsController < ApplicationController
   before_action :authenticate_user!
   protect_from_forgery with: :exception, prepend: true
   skip_before_action :verify_authenticity_token, only: [ :chart_data ]
-  before_action :verify_authenticity_token, except: [ :chart_data ]
 
   # GET /transactions/new
   # Renders the CSV upload form
@@ -21,78 +20,75 @@ class TransactionsController < ApplicationController
           raise "Invalid file type. Please upload a CSV file."
         end
 
-        csv_data = CSV.read(params[:file].tempfile, headers: true)
+        # Create a new analysis session
+        @analysis_session = current_user.analysis_sessions.new(
+          name: params[:file].original_filename,
+          status: "processing"
+        )
+        @analysis_session.csv_file.attach(params[:file])
 
-        Rails.logger.info "CSV Headers found: #{csv_data.headers.inspect}"
+        if @analysis_session.save
+          csv_data = CSV.read(params[:file].tempfile, headers: true)
+          mapping = auto_map_columns(csv_data.headers)
 
-        # Print first row for debugging
-        first_row = csv_data.first
-        Rails.logger.info "First row data: #{first_row.to_h.inspect}"
+          transaction_count = 0
+          errors = []
 
-        mapping = auto_map_columns(csv_data.headers)
+          csv_data.each_with_index do |row, index|
+            begin
+              row_hash = row.to_h
 
-        Rails.logger.info "Column mapping created: #{mapping.inspect}"
+              raw_amount = row_hash[mapping[:amount]]
+              amount = clean_amount(raw_amount)
 
-        # Clear existing transactions only if we have valid data
-        current_user.transactions.destroy_all
+              if amount.nil?
+                errors << "Row #{index + 1}: Invalid amount format (raw value: '#{raw_amount}')"
+                next
+              end
 
-        transaction_count = 0
-        errors = []
+              # Get other fields
+              date = clean_date(row_hash[mapping[:transaction_date]])
+              original_category = clean_string(row_hash[mapping[:category]], default: "Other")
+              merchant = clean_string(row_hash[mapping[:merchant]], default: "Unknown")
 
-        csv_data.each_with_index do |row, index|
-          begin
-            row_hash = row.to_h
+              # Determine category based on amount
+              category = if amount.negative?
+                "Payment"  # Override category for negative amounts
+              else
+                original_category
+              end
 
-            raw_amount = row_hash[mapping[:amount]]
-            amount = clean_amount(raw_amount)
+              # Create the transaction - Note we're creating it directly on current_user
+              transaction = current_user.transactions.create!(
+                amount: amount,
+                currency: "USD",
+                country: "US",
+                category: category,
+                merchant: merchant,
+                transaction_date: date || Date.today
+              )
 
-            if amount.nil?
-              errors << "Row #{index + 1}: Invalid amount format (raw value: '#{raw_amount}')"
+              Rails.logger.info "Created transaction: amount=#{amount}, category=#{category}"
+              transaction_count += 1
+            rescue StandardError => e
+              errors << "Row #{index + 1}: #{e.message}"
+              Rails.logger.error "Error on row #{index + 1}: #{e.full_message}"
               next
             end
-
-            # Get other fields
-            date = clean_date(row_hash[mapping[:transaction_date]])
-            original_category = clean_string(row_hash[mapping[:category]], default: "Other")
-            merchant = clean_string(row_hash[mapping[:merchant]], default: "Unknown")
-
-            # Determine category based on amount
-            # If amount is negative, it's a payment, otherwise use original category
-            category = if amount.negative?
-              "Payment"  # Override category for negative amounts
-            else
-              original_category
-            end
-
-            transaction = current_user.transactions.create!(
-              amount: amount,  # Store the amount with its sign
-              currency: "USD",
-              country: "US",
-              category: category,
-              merchant: merchant,
-              transaction_date: date || Date.today
-            )
-
-            Rails.logger.info "Created transaction: amount=#{amount}, category=#{category}"
-            transaction_count += 1
-          rescue StandardError => e
-            errors << "Row #{index + 1}: #{e.message}"
-            Rails.logger.error "Error on row #{index + 1}: #{e.full_message}"
-            next
           end
-        end
 
-        if transaction_count > 0
-          redirect_to root_path, notice: "Successfully processed #{transaction_count} transactions."
+          if transaction_count > 0
+            @analysis_session.update(status: "completed")
+            redirect_to root_path, notice: "Successfully processed #{transaction_count} transactions."
+          else
+            @analysis_session.update(status: "failed")
+            raise "No transactions could be processed. Please check your CSV format."
+          end
         else
-          error_message = "Could not process any rows. Please check your CSV format.\n"
-          error_message += "Detected headers: #{csv_data.headers.join(', ')}\n"
-          error_message += "Column mapping: #{mapping.inspect}\n"
-          error_message += "Errors: #{errors.join('; ')}"
-          raise error_message
+          raise "Could not save analysis session"
         end
       rescue StandardError => e
-        Rails.logger.error "CSV Processing Error: #{e.full_message}"
+        @analysis_session&.destroy
         redirect_to root_path, alert: "Error processing CSV: #{e.message}"
       end
     else
@@ -229,6 +225,16 @@ class TransactionsController < ApplicationController
       values: data.values,
       label: "#{label} by #{group_by.titleize}"
     }
+  end
+
+  # Add new action to delete analysis sessions
+  def destroy_analysis_session
+    @analysis_session = current_user.analysis_sessions.find(params[:id])
+    @analysis_session.destroy
+
+    redirect_to user_profile_path, notice: "CSV file and associated data deleted successfully."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to user_profile_path, alert: "CSV file not found."
   end
 
   private

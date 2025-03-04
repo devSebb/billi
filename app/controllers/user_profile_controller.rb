@@ -4,5 +4,6 @@ class UserProfileController < ApplicationController
   def show
     @user = current_user
     @plaid_items = @user.plaid_items
+    @analysis_sessions = @user.analysis_sessions.order(created_at: :desc)
   end
 end

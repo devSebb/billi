@@ -220,6 +220,11 @@
       return;
     }
 
+    // Add event listeners for select elements
+    document.getElementById('barChartGroupBy').addEventListener('change', updateBarChart);
+    document.getElementById('barChartAggregate').addEventListener('change', updateBarChart);
+    document.getElementById('doughnutChartGroupBy').addEventListener('change', updateDoughnutChart);
+
     updateBarChart();
     updateDoughnutChart();
   }

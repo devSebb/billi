@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       delete "reset"
       post "load_test_data"
       get "chart_data"
+      delete "analysis_sessions/:id", to: "transactions#destroy_analysis_session", as: :destroy_analysis_session
     end
   end
   get "up" => "rails/health#show", as: :rails_health_check
