@@ -1,115 +1,12 @@
-<div class="max-w-3xl mx-auto p-8 mt-16 min-h-screen">
-  <div class="bg-white shadow-xl rounded-2xl overflow-hidden m-8">
+<div class="mx-auto p-8 mt-16 min-h-screen">
+
     <!-- Header Section -->
-    <div class="bg-[#19272f] p-8">
-      <h1 class="text-3xl font-bold text-white mb-2">Your Profile</h1>
-      <p class="text-[#ffd500] text-sm">Manage your account and connections</p>
-    </div>
-
-    <!-- Main Content -->
-    <div class="p-8">
-      <!-- Account Details Section -->
-      <div class="mb-8">
-        <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Account Details
-        </h2>
-        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-          <div class="flex items-center">
-            <span class="text-[#19272f] w-24">Email:</span>
-            <span class="text-[#19272f] font-medium"><%= @user.email %></span>
-          </div>
-          <% if @user.name.present? %>
-            <div class="flex items-center">
-              <span class="text-[#19272f] w-24">Name:</span>
-              <span class="text-[#19272f] font-medium"><%= @user.name %></span>
-            </div>
-          <% end %>
-        </div>
+    <div class="p-8 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-[#19272f] mb-2">Your Profile</h1>
+        <p class="text-[#19272f] text-sm">Manage your account and connections</p>
       </div>
-
-      <!-- Linked Accounts Section -->
-      <div class="mb-8">
-        <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
-          Linked Accounts
-        </h2>
-        <div class="bg-gray-50 rounded-lg p-4">
-          <% if @plaid_items.any? %>
-            <div class="space-y-3">
-              <% @plaid_items.each do |item| %>
-                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                  <div class="flex items-center">
-                    <svg class="w-5 h-5 text-[#ffd500] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p class="font-medium text-[#19272f]">Bank Account</p>
-                      <p class="text-sm text-gray-500">Connected on <%= item.created_at.strftime('%B %d, %Y') %></p>
-                    </div>
-                  </div>
-                  <span class="text-xs text-gray-500">ID: <%= item.id %></span>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <div class="text-center py-6">
-              <svg class="w-12 h-12 text-[#19272f] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-              <p class="text-[#19272f] mb-4">No bank accounts linked yet.</p>
-              <%= link_to 'Connect a Bank Account', '#', id: 'connect-bank',
-                  class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[#19272f] bg-[#ffd500] hover:bg-[#e6c000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500]' %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-
-      <!-- CSV Uploads Section -->
-      <div class="mb-8">
-        <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          CSV Uploads
-        </h2>
-        <div class="bg-gray-50 rounded-lg p-4">
-          <% if @csv_uploads&.any? %>
-            <div class="space-y-3">
-              <% @csv_uploads.each do |upload| %>
-                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
-                  <div class="flex items-center">
-                    <svg class="w-5 h-5 text-[#ffd500] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p class="font-medium text-[#19272f]"><%= upload.filename %></p>
-                      <p class="text-sm text-gray-500">Uploaded on <%= upload.created_at.strftime('%B %d, %Y') %></p>
-                    </div>
-                  </div>
-                  <span class="text-xs text-gray-500">ID: <%= upload.id %></span>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <div class="text-center py-6">
-              <svg class="w-12 h-12 text-[#19272f] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p class="text-[#19272f] mb-4">No CSV files uploaded yet.</p>
-              <%= link_to 'Upload CSV', '#',
-                  class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[#19272f] bg-[#ffd500] hover:bg-[#e6c000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500]' %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="border-t pt-6 flex justify-end space-x-4">
+      <div class="flex items-center gap-4">
         <%= link_to edit_user_registration_path,
             class: 'inline-flex items-center px-4 py-2 border border-[#19272f] rounded-md shadow-sm text-sm font-medium text-[#19272f] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500]' do %>
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,5 +23,120 @@
         <% end %>
       </div>
     </div>
+
+    <!-- Main Content -->
+    <div class="p-8 flex gap-8">
+      <!-- Left Column -->
+      <div class="w-1/2">
+        <!-- Account Details Section -->
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Account Details
+          </h2>
+          <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div class="flex items-center">
+              <span class="text-[#19272f] w-24">Email:</span>
+              <span class="text-[#19272f] font-medium"><%= @user.email %></span>
+            </div>
+            <% if @user.name.present? %>
+              <div class="flex items-center">
+                <span class="text-[#19272f] w-24">Name:</span>
+                <span class="text-[#19272f] font-medium"><%= @user.name %></span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Linked Accounts Section -->
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            Linked Accounts
+          </h2>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <% if @plaid_items.any? %>
+              <div class="space-y-3">
+                <% @plaid_items.each do |item| %>
+                  <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                    <div class="flex items-center">
+                      <svg class="w-5 h-5 text-[#ffd500] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p class="font-medium text-[#19272f]">Bank Account</p>
+                        <p class="text-sm text-gray-500">Connected on <%= item.created_at.strftime('%B %d, %Y') %></p>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-500">ID: <%= item.id %></span>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="text-center py-6">
+                <svg class="w-12 h-12 text-[#19272f] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <p class="text-[#19272f] mb-4">No bank accounts linked yet.</p>
+                <%= link_to 'Connect a Bank Account', '#', id: 'connect-bank',
+                    class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[#19272f] bg-[#ffd500] hover:bg-[#e6c000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500]' %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="w-1/2">
+        <!-- CSV Uploads Section -->
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold text-[#19272f] mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            CSV Uploads
+          </h2>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <% if @csv_uploads&.any? %>
+              <div class="space-y-3">
+                <% @csv_uploads.each do |upload| %>
+                  <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                    <div class="flex items-center">
+                      <svg class="w-5 h-5 text-[#ffd500] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <p class="font-medium text-[#19272f]"><%= upload.filename %></p>
+                        <p class="text-sm text-gray-500">Uploaded on <%= upload.created_at.strftime('%B %d, %Y') %></p>
+                      </div>
+                    </div>
+                    <span class="text-xs text-gray-500">ID: <%= upload.id %></span>
+                  </div>
+                <% end %>
+
+                <!-- Charts Section -->
+                <div class="mt-8">
+                  <h3 class="text-lg font-medium text-[#19272f] mb-4">Data Analysis</h3>
+                  <%= render "shared/charts" %>
+                </div>
+              </div>
+            <% else %>
+              <div class="text-center py-6">
+                <svg class="w-12 h-12 text-[#19272f] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-[#19272f] mb-4">No CSV files uploaded yet.</p>
+                <%= link_to 'Upload CSV', '#',
+                    class: 'inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-[#19272f] bg-[#ffd500] hover:bg-[#e6c000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500]' %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
-</div>

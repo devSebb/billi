@@ -11,7 +11,7 @@
 
       <div class="hidden md:flex items-center gap-6">
         <% if user_signed_in? %>
-          <%= link_to dashboard_path,
+          <%= link_to root_path,
               class: "text-gray-300 hover:text-white transition-colors" do %>
             <i class="fas fa-chart-line"></i> Dashboard
           <% end %>

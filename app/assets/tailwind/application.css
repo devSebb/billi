@@ -1,5 +1,128 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Base Styles */
+:root {
+  --primary-dark: #19272f;
+  --primary-yellow: #ffd500;
+  --primary-yellow-hover: #e6c000;
+}
+
+/* Typography */
+.logo-font {
+  font-family: 'Righteous', cursive;
+}
+
+/* Button Styles */
+.btn-primary {
+  @apply bg-[#19272f] hover:bg-gray-700 text-white;
+}
+
+.btn-secondary {
+  @apply bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f];
+}
+
+.btn-outline {
+  @apply bg-white hover:bg-gray-50 text-[#19272f] border border-[#19272f];
+}
+
+.btn-base {
+  @apply text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-200;
+}
+
+/* File Input Customization */
+.file-input-custom {
+  @apply block w-full text-sm text-gray-500;
+}
+
+.file-input-custom::file-selector-button {
+  @apply mr-4 py-2 px-4 rounded-lg border-0 text-sm font-medium;
+  @apply bg-[#19272f] text-white hover:bg-gray-700;
+  @apply transition-colors duration-200;
+}
+
+/* Card Styles */
+.card-base {
+  @apply bg-white rounded-xl shadow-lg border border-gray-100;
+}
+
+.card-header {
+  @apply text-xl font-semibold text-[#19272f] mb-6 flex items-center gap-2;
+}
+
+/* Dropdown Customization */
+.dropdown-custom {
+  @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100 w-96;
+}
+
+/* Form Elements */
+.form-input-base {
+  @apply block w-full text-sm text-gray-500 rounded-lg border-gray-200;
+  @apply focus:ring-2 focus:ring-[#ffd500] focus:border-[#ffd500];
+}
+
+.form-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+/* Divider with Text */
+.divider-with-text {
+  @apply relative w-full text-center my-2;
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+  content: "";
+  @apply absolute top-1/2 w-[45%] border-t border-gray-200;
+}
+
+.divider-with-text::before {
+  @apply left-0;
+}
+
+.divider-with-text::after {
+  @apply right-0;
+}
+
+.divider-text {
+  @apply px-2 bg-white text-gray-500 text-sm relative z-10;
+}
+
+/* Icon Colors */
+.icon-primary {
+  @apply text-[#19272f];
+}
+
+.icon-secondary {
+  @apply text-[#ffd500];
+}
+
+/* Utility Classes */
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+.flex-between {
+  @apply flex items-center justify-between;
+}
+
+.transition-base {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Shadow Variations */
+.shadow-custom {
+  @apply shadow-lg;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-custom-hover {
+  @apply hover:shadow-xl transition-shadow duration-200;
+}
+
+/* Focus States */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500];
+}
 
 /* CUSTOME CODEEE */

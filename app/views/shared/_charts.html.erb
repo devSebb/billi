@@ -3,7 +3,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <% end %>
 
-<div class="container mx-auto px-4">
+<div class="container mx-auto px-4" data-controller="charts">
 
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -213,18 +213,28 @@
       });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const elements = [
-      ['barChartGroupBy', updateBarChart],
-      ['barChartAggregate', updateBarChart],
-      ['doughnutChartGroupBy', updateDoughnutChart]
-    ];
-
-    elements.forEach(([id, handler]) => {
-      document.getElementById(id).addEventListener('change', handler);
-    });
+  function initializeCharts() {
+    if (typeof Chart === 'undefined') {
+      // Wait for Chart.js to load
+      setTimeout(initializeCharts, 100);
+      return;
+    }
 
     updateBarChart();
     updateDoughnutChart();
-  });
+  }
+
+  // Initialize charts when the DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeCharts);
+  } else {
+    initializeCharts();
+  }
+
+  // Also initialize charts when Turbo Drive loads a new page
+  document.addEventListener('turbo:load', initializeCharts);
+
+  // Initialize charts after any dynamic content updates
+  document.addEventListener('turbo:frame-load', initializeCharts);
+  document.addEventListener('turbo:render', initializeCharts);
 </script>
