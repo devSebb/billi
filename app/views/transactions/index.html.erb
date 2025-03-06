@@ -1,6 +1,8 @@
 <div class="container mx-auto p-8">
   <h2 class="text-2xl font-bold mb-4">Transaction Analysis</h2>
 
+  <%= render 'shared/charts' %>
+
   <!-- Table Displaying Transaction Data -->
   <table class="min-w-full bg-white border">
     <thead>
@@ -28,36 +30,4 @@
   </table>
 
   <br>
-
-  <!-- Chart.js Visualization -->
-  <h3 class="text-xl font-bold mt-8 mb-4">Spending by Country</h3>
-  <canvas id="expenseChart" width="400" height="200"></canvas>
 </div>
-
-<!-- Include Chart.js via CDN (or use Rails importmap if preferred) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const ctx = document.getElementById('expenseChart').getContext('2d');
-    const chartData = {
-      labels: <%= raw @chart_data.keys.to_json %>,
-      datasets: [{
-        label: 'Total Spending',
-        data: <%= raw @chart_data.values.to_json %>,
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
-      }]
-    };
-
-    new Chart(ctx, {
-      type: 'bar',
-      data: chartData,
-      options: {
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
-  });
-</script>

@@ -23,11 +23,32 @@
     </div>
 
     <!-- Collapsible Content -->
-    <div class="overflow-hidden transition-all duration-300 max-h-0" data-dropdown-target="content">
-      <p class="text-sm text-gray-500 italic mt-4 mb-6">
-        Data from <%= @transactions.minimum(:transaction_date).strftime("%B %d, %Y") %> to
-        <%= @transactions.maximum(:transaction_date).strftime("%B %d, %Y") %>
-      </p>
+    <div class="overflow-hidden transition-all duration-300" data-dropdown-target="content">
+      <% if @transactions.any? %>
+        <p class="text-sm text-gray-700 italic mt-4 mb-6">
+          <% min_date = @transactions.map(&:transaction_date).min %>
+          <% max_date = @transactions.map(&:transaction_date).max %>
+          Data from <%= min_date&.strftime("%B %d, %Y") %> to
+          <%= max_date&.strftime("%B %d, %Y") %>
+        </p>
+      <% end %>
+
+
+      <div class="mb-4 flex justify-end">
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Sort by:</label>
+          <select class="form-select rounded-lg text-sm text-gray-700"
+                  data-controller="sort"
+                  data-action="change->sort#applySort">
+            <option value="transaction_date" <%= params[:sort] == 'transaction_date' || params[:sort].blank? ? 'selected' : '' %>>Date</option>
+            <option value="amount" <%= params[:sort] == 'amount' ? 'selected' : '' %>>Amount</option>
+            <option value="category" <%= params[:sort] == 'category' ? 'selected' : '' %>>Category</option>
+            <option value="merchant" <%= params[:sort] == 'merchant' ? 'selected' : '' %>>Merchant</option>
+            <option value="country" <%= params[:sort] == 'country' ? 'selected' : '' %>>Country</option>
+            <option value="currency" <%= params[:sort] == 'currency' ? 'selected' : '' %>>Currency</option>
+          </select>
+        </div>
+      </div>
 
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -45,19 +66,28 @@
             <% @transactions.each do |tx| %>
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= tx.transaction_date.strftime("%Y-%m-%d") %>
+                  <%= tx.transaction_date.strftime("%B #{tx.transaction_date.day.ordinalize}, %Y") %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.country %></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.merchant %></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.category %></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <%= number_with_precision(tx.amount, precision: 2) %>
+                  <%= number_to_currency(tx.amount, precision: 2) %>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.currency %></td>
               </tr>
             <% end %>
           </tbody>
         </table>
+
+        <!-- Pagination Links -->
+        <div class="mt-6">
+          <% if @pagy %>
+            <div class="flex items-center justify-center gap-2 text-gray-600">
+              <%== pagy_nav(@pagy) %>
+            </div>
+          <% end %>
+        </div>
       </div>
     </div>
   <% else %>

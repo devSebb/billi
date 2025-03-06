@@ -41,4 +41,54 @@ export default class extends Controller {
       console.error('Error:', error)
     }
   }
+
+  async handleSandboxConnection(event) {
+    event.preventDefault()
+
+    try {
+      // Get both link_token and public_token from sandbox endpoint
+      const tokenResponse = await fetch('/plaid/sandbox_public_token', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        }
+      })
+
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.json()
+        throw new Error(errorData.error || 'Failed to get sandbox tokens')
+      }
+
+      const { link_token, public_token } = await tokenResponse.json()
+
+      // Exchange the public_token for an access_token
+      const exchangeResponse = await fetch('/plaid/exchange_public_token', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ public_token: public_token })
+      })
+
+      if (!exchangeResponse.ok) {
+        const errorData = await exchangeResponse.json()
+        throw new Error(errorData.error || 'Failed to exchange public token')
+      }
+
+      const result = await exchangeResponse.json()
+      if (result.success) {
+        // Reload the page to show the new transactions
+        window.location.reload()
+      } else {
+        throw new Error('Failed to process exchange response')
+      }
+    } catch (error) {
+      console.error('Error connecting to Plaid:', error)
+      alert('Failed to connect to Plaid: ' + error.message)
+    }
+  }
 }

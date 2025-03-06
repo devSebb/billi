@@ -33,6 +33,7 @@ Rails.application.routes.draw do
   post "plaid/create_link_token", to: "plaid#create_link_token"
   post "plaid/exchange_public_token", to: "plaid#exchange_public_token"
   post "plaid/link", to: "plaid#link", as: :plaid_link
+  post "/plaid/sandbox_public_token", to: "plaid#create_sandbox_public_token"
 
   # Add user profile route
   get "profile", to: "user_profile#show", as: :user_profile

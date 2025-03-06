@@ -3,6 +3,8 @@ require "csv"
 require_relative "../../lib/seed_data"
 
 class TransactionsController < ApplicationController
+  include Pagy::Backend
+  include TransactionFilterable
   before_action :authenticate_user!
   protect_from_forgery with: :exception, prepend: true
   skip_before_action :verify_authenticity_token, only: [ :chart_data ]
@@ -39,6 +41,13 @@ class TransactionsController < ApplicationController
               row_hash = row.to_h
 
               raw_amount = row_hash[mapping[:amount]]
+
+              # Get other fields
+              date = clean_date(row_hash[mapping[:transaction_date]])
+              original_category = clean_string(row_hash[mapping[:category]], default: "Other")
+              merchant = clean_string(row_hash[mapping[:merchant]], default: "Unknown")
+
+              # Handle amounts for Payment category and negative amounts
               amount = clean_amount(raw_amount)
 
               if amount.nil?
@@ -46,29 +55,22 @@ class TransactionsController < ApplicationController
                 next
               end
 
-              # Get other fields
-              date = clean_date(row_hash[mapping[:transaction_date]])
-              original_category = clean_string(row_hash[mapping[:category]], default: "Other")
-              merchant = clean_string(row_hash[mapping[:merchant]], default: "Unknown")
-
-              # Determine category based on amount
-              category = if amount.negative?
-                "Payment"  # Override category for negative amounts
-              else
-                original_category
+              # Ensure Payment categories are always negative and preserve existing negative amounts
+              if original_category.to_s.downcase.strip == "payment"
+                amount = -amount.abs
               end
 
-              # Create the transaction - Note we're creating it directly on current_user
+              # Create the transaction
               transaction = current_user.transactions.create!(
                 amount: amount,
                 currency: "USD",
                 country: "US",
-                category: category,
+                category: original_category,
                 merchant: merchant,
                 transaction_date: date || Date.today
               )
 
-              Rails.logger.info "Created transaction: amount=#{amount}, category=#{category}"
+              Rails.logger.info "Created transaction: amount=#{amount}, category=#{original_category}"
               transaction_count += 1
             rescue StandardError => e
               errors << "Row #{index + 1}: #{e.message}"
@@ -149,13 +151,13 @@ class TransactionsController < ApplicationController
   # GET /transactions
   # Displays the analysis of transactions in a table and via Chart.js
   def index
-    @transactions = current_user.transactions.order(transaction_date: :desc)
-    # Prepare data for Chart.js
-    # For example, aggregate total spending per country:
-    @chart_data = current_user.transactions.group(:category).sum(:amount)
+    @transactions = Current.user.transactions.includes(:analysis_session, :plaid_item)
+    base_transactions = current_user.transactions
+    sorted_transactions = sort_transactions(base_transactions)
+    @pagy, @transactions = pagy(sorted_transactions)
+    @chart_data = base_transactions.group(:category).sum(:amount)
   end
 
-  # Add this new action to the TransactionsController
   def reset
     if user_signed_in?
       current_user.transactions.destroy_all
@@ -165,7 +167,6 @@ class TransactionsController < ApplicationController
     end
   end
 
-  # Add this new action to the TransactionsController
   def load_test_data
     if user_signed_in?
       begin
@@ -250,28 +251,15 @@ class TransactionsController < ApplicationController
   def clean_amount(value)
     return nil if value.blank?
 
-    # Convert to string and clean up
     amount_str = value.to_s.strip
-
     Rails.logger.info "Processing amount: '#{amount_str}'"
 
-    # Detect negative amount (either starts with minus or is in parentheses)
-    is_negative = amount_str.start_with?("-") || amount_str.match?(/^\(.*\)$/)
-
-    # Clean the amount string
-    cleaned_str = amount_str
-      .gsub(/[\(\)]/, "")
-      .gsub(/[$,]/, "")
-      .strip
+    # Remove non-numeric chars except minus and decimal, handle multiple minus signs
+    cleaned_str = amount_str.gsub(/[^-\d.]/, "").gsub(/(-)+/, "-").strip
 
     begin
-      # Convert to float
       amount = Float(cleaned_str)
-      # Make negative if needed
-      amount = -amount.abs if is_negative
-
       Rails.logger.info "Processed amount: #{amount}"
-
       amount
     rescue ArgumentError => e
       Rails.logger.error "Failed to parse amount '#{amount_str}': #{e.message}"
