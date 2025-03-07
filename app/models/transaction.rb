@@ -3,7 +3,7 @@ class Transaction < ApplicationRecord
   belongs_to :plaid_item, optional: true
   belongs_to :analysis_session, optional: true
 
-  validates :amount, presence: true, numericality: { greater_than: 0 }
+  validates :amount, presence: true, numericality: true
   validates :currency, presence: true
   validates :category, presence: true
   validates :merchant, presence: true

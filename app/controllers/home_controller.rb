@@ -4,14 +4,14 @@ class HomeController < ApplicationController
 
   def index
     if user_signed_in?
-      # Remove the includes for analysis_session since the association doesn't exist
       base_transactions = Current.user.transactions
 
       # Calculate stats from all transactions
       @total_transactions = base_transactions.count
-      @total_spent = base_transactions.where("amount > 0").sum(:amount) # Only sum positive amounts
+      @total_spent = base_transactions.where("amount > 0").sum(:amount)
       @average_transaction = base_transactions.where("amount > 0").average(:amount)
       @upload_count = Current.user.analysis_sessions.count + Current.user.plaid_items.count
+      @payments = base_transactions.where("amount < 0").sum(:amount)
 
       # Apply sorting and pagination
       sorted_transactions = sort_transactions(base_transactions)

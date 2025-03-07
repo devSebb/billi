@@ -1,9 +1,6 @@
 require_relative '../lib/seed_data'
 
 def seed_test_data(user)
-  # Clear existing data for this user
-  user.transactions.destroy_all
-
   # Get data from shared module
   transactions_data = SeedData.transactions_data
 

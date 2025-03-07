@@ -41,6 +41,7 @@ class TransactionsController < ApplicationController
               row_hash = row.to_h
 
               raw_amount = row_hash[mapping[:amount]]
+              Rails.logger.info "Row #{index + 1}: Raw amount: '#{raw_amount}'"
 
               # Get other fields
               date = clean_date(row_hash[mapping[:transaction_date]])
@@ -51,16 +52,13 @@ class TransactionsController < ApplicationController
               amount = clean_amount(raw_amount)
 
               if amount.nil?
+                Rails.logger.info "Skipping row #{index + 1}: Invalid amount format (raw value: '#{raw_amount}')"
                 errors << "Row #{index + 1}: Invalid amount format (raw value: '#{raw_amount}')"
                 next
               end
 
-              # Ensure Payment categories are always negative and preserve existing negative amounts
-              if original_category.to_s.downcase.strip == "payment"
-                amount = -amount.abs
-              end
+              Rails.logger.info "Row #{index + 1}: Cleaned amount: #{amount}"
 
-              # Create the transaction
               transaction = current_user.transactions.create!(
                 amount: amount,
                 currency: "USD",
@@ -95,6 +93,32 @@ class TransactionsController < ApplicationController
       end
     else
       redirect_to root_path, alert: "Please choose a CSV file."
+    end
+  end
+
+  def clean_amount(amount_str)
+    return nil if amount_str.nil? || amount_str.strip.empty?  # Handle nil or empty strings
+
+    amount_str = amount_str.to_s.strip  # Remove leading/trailing spaces
+
+    # Handle parentheses for negative amounts (e.g., "(100.00)" -> "-100.00")
+    if amount_str.start_with?("(") && amount_str.end_with?(")")
+      amount_str = "-" + amount_str[1..-2]
+    end
+
+    # Remove non-numeric characters except digits, decimal point, and minus sign
+    cleaned = amount_str.gsub(/[^0-9.-]/, "")
+
+    # Handle trailing minus sign (e.g., "100.00-" -> "-100.00")
+    if cleaned.end_with?("-")
+      cleaned = "-" + cleaned.chop
+    end
+
+    # Convert to float, return nil if parsing fails
+    begin
+      Float(cleaned)
+    rescue ArgumentError, TypeError
+      nil
     end
   end
 
@@ -248,29 +272,27 @@ class TransactionsController < ApplicationController
     end
   end
 
-  def clean_amount(value)
-    return nil if value.blank?
+  # def clean_amount(value)
+  #   return nil if value.blank?
 
-    amount_str = value.to_s.strip
-    Rails.logger.info "Processing amount: '#{amount_str}'"
+  #   amount_str = value.to_s.strip
+  #   Rails.logger.info "Processing amount: '#{amount_str}'"
 
-    # Remove non-numeric chars except minus and decimal, handle multiple minus signs
-    cleaned_str = amount_str.gsub(/[^-\d.]/, "").gsub(/(-)+/, "-").strip
+  #   cleaned_str = amount_str.gsub(/[^-\d.]/, "").gsub(/(-)+/, "-").strip
 
-    begin
-      amount = Float(cleaned_str)
-      Rails.logger.info "Processed amount: #{amount}"
-      amount
-    rescue ArgumentError => e
-      Rails.logger.error "Failed to parse amount '#{amount_str}': #{e.message}"
-      nil
-    end
-  end
+  #   begin
+  #     amount = Float(cleaned_str)
+  #     Rails.logger.info "Processed amount: #{amount}"
+  #     amount
+  #   rescue ArgumentError => e
+  #     Rails.logger.error "Failed to parse amount '#{amount_str}': #{e.message}"
+  #     nil
+  #   end
+  # end
 
   def clean_string(value, default: "")
     return default if value.blank?
 
-    # Remove special characters and extra spaces
     cleaned = value.to_s
                   .strip
                   .gsub(/[^\w\s-]/, "")
@@ -323,10 +345,10 @@ class TransactionsController < ApplicationController
         end
       end
 
-      # If none of the formats work, try letting Ruby parse it
+      # If none of the formats work, let Ruby try to parse it
       Date.parse(cleaned)
     rescue StandardError => e
-      Date.today  # Always return a valid date
+      Date.today
     end
   end
 
@@ -362,7 +384,6 @@ class TransactionsController < ApplicationController
       mapping[:country] = original_headers[headers_downcase.index { |h| h.include?("country") }]
     end
 
-    # Ensure required fields are found
     unless mapping[:amount] && mapping[:transaction_date]
       Rails.logger.error "Missing required fields. Headers available: #{original_headers.join(', ')}"
       raise "Could not find required fields in CSV. Need an 'amount' column and a 'transaction date' column."
