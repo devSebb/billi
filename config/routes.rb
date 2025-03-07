@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   root "home#landing"
 
   get "dashboard", to: "home#dashboard"
-  get "landing", to: "home#landing"
+  get "landing", to: "home#landing", as: :landing
 
   # Transactions routes
   resources :transactions, only: [] do
