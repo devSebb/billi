@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gem 'devise'
 gem 'plaid'
-gem 'pagy', '~> 6.0'
+gem 'pagy', '~> 9.3'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 7.2.2", ">= 7.2.2.1"
