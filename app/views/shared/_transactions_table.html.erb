@@ -1,5 +1,5 @@
 <!-- Transactions Section -->
-<div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 mb-8" data-controller="dropdown">
+<div class="bg-white rounded-xl shadow-md py-6 px-7 border border-gray-100 mb-8" data-controller="dropdown">
   <% if @transactions.present? %>
     <!-- Collapsible Header -->
     <div class="flex justify-between items-center cursor-pointer"
@@ -33,8 +33,25 @@
         </p>
       <% end %>
 
+      <div class="mb-4 flex justify-between items-center">
+        <!-- Search Box -->
+        <div class="relative" data-controller="search">
+          <input type="text"
+                 placeholder="Search transactions..."
+                 value="<%= params[:query] %>"
+                 class="form-input pl-10 pr-12 py-2 rounded-lg text-sm text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
+                 data-action="input->search#perform keyup->search#perform"
+                 data-search-target="input">
+          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <% if params[:query].present? %>
+            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    data-action="click->search#clearSearch">
+              <i class="fas fa-times"></i>
+            </button>
+          <% end %>
+        </div>
 
-      <div class="mb-4 flex justify-end">
+        <!-- Sort Dropdown -->
         <div class="flex items-center gap-2">
           <label class="text-sm text-gray-600">Sort by:</label>
           <select class="form-select rounded-lg text-sm text-gray-700"
@@ -51,20 +68,38 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full divide-y divide-gray-200" data-controller="sort">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Merchant</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+              <% [
+                ['Date', 'transaction_date'],
+                ['Country', 'country'],
+                ['Merchant', 'merchant'],
+                ['Category', 'category'],
+                ['Amount', 'amount'],
+                ['Currency', 'currency']
+              ].each do |label, column| %>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
+                    data-action="click->sort#sort"
+                    data-sort-column="<%= column %>">
+                  <div class="flex items-center gap-1">
+                    <%= label %>
+                    <div class="flex flex-col text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <i class="fas fa-chevron-up -mb-1"></i>
+                      <i class="fas fa-chevron-down"></i>
+                    </div>
+                  </div>
+                </th>
+              <% end %>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <% @transactions.each do |tx| %>
+            <% @transactions.each_with_index do |tx, index| %>
               <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <%= (@pagy&.offset || 0) + index + 1 %>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <%= tx.transaction_date.strftime("%B #{tx.transaction_date.day.ordinalize}, %Y") %>
                 </td>

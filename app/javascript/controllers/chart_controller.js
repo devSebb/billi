@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["barChart", "doughnutChart", "barGroupBy", "barAggregate", "doughnutGroupBy", "doughnutTotal"]
+  static targets = ["barChart", "doughnutChart", "lineChart", "barGroupBy", "barAggregate", "doughnutGroupBy", "doughnutTotal"]
 
   connect() {
     // Wait for Chart.js to load
@@ -22,6 +22,10 @@ export default class extends Controller {
     if (this.doughnutChart) {
       this.doughnutChart.destroy()
       this.doughnutChart = null
+    }
+    if (this.lineChart) {
+      this.lineChart.destroy()
+      this.lineChart = null
     }
   }
 
@@ -45,6 +49,9 @@ export default class extends Controller {
     if (this.hasDoughnutChartTarget) {
       this.initializeDoughnutChart()
     }
+    if (this.hasLineChartTarget) {
+      this.initializeLineChart()
+    }
   }
 
   initializeBarChart() {
@@ -62,6 +69,12 @@ export default class extends Controller {
       this.doughnutGroupByTarget.addEventListener('change', this.handleDoughnutChartChange.bind(this))
     }
     this.updateDoughnutChart()
+  }
+
+  initializeLineChart() {
+    const spentData = this.element.dataset.totalSpent
+    const paymentsData = this.element.dataset.totalPayments
+    this.updateLineChart(JSON.parse(spentData), JSON.parse(paymentsData))
   }
 
   handleBarChartChange() {
@@ -146,6 +159,36 @@ export default class extends Controller {
     }
   }
 
+  async updateLineChart(spentData, paymentsData) {
+    if (!this.hasLineChartTarget) return
+
+    try {
+      if (this.lineChart) {
+        this.lineChart.destroy()
+      }
+
+      const ctx = this.lineChartTarget.getContext('2d')
+      this.lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Spent', 'Payments'],
+          datasets: [{
+            label: 'Transaction Overview',
+            data: [spentData, paymentsData],
+            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+            borderColor: '#4F46E5',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: this.getLineChartOptions()
+      })
+    } catch (error) {
+      console.error('Error updating line chart:', error)
+    }
+  }
+
   getBarChartOptions(aggregate) {
     return {
       maintainAspectRatio: false,
@@ -173,6 +216,46 @@ export default class extends Controller {
         legend: {
           position: 'bottom',
           labels: { font: { size: 12 } }
+        }
+      }
+    }
+  }
+
+  getLineChartOptions() {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'Monthly Transaction Trends',
+          font: { size: 16 }
+        },
+        legend: {
+          display: false
+        }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Month'
+          }
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Amount'
+          },
+          ticks: {
+            callback: (value) => this.formatCurrency(value)
+          }
         }
       }
     }

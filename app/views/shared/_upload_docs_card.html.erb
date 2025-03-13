@@ -1,0 +1,121 @@
+<div class="flex bg-white rounded-xl shadow-sm border border-gray-100 h-auto hover:shadow-md transition-shadow duration-300">
+  <div class="py-4 px-6 flex flex-col gap-2">
+    <h2 class="text-lg font-medium text-gray-900 flex items-center group">
+      <i class="fas fa-upload text-yellow-400 mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+      Upload Documents
+    </h2>
+
+    <!-- CSV Upload Form -->
+    <%= form_tag upload_csv_transactions_path,
+                 multipart: true,
+                 method: :post,
+                 authenticity_token: true,
+                 enforce_utf8: true,
+                 class: "w-full" do %>
+      <div class="mb-2 group">
+        <div class="mt-1 flex justify-center px-6 items-center pt-5 pb-6 border-2 border-gray-200 border-dashed rounded-lg
+                    group-hover:border-yellow-400 group-hover:bg-yellow-50/30 transition-all duration-300 cursor-pointer
+                    relative overflow-hidden">
+          <%= label_tag :file, "Upload CSV Statement", class: "text-sm justify-center text-center font-medium text-gray-700 mb-2 block" %>
+          <div class="space-y-1 text-center relative z-10">
+            <i class="fas fa-file-csv text-3xl text-gray-400 mb-3 group-hover:text-yellow-400 transition-colors duration-300"></i>
+            <%= file_field_tag :file,
+                class: "hidden",
+                accept: ".csv",
+                data: {
+                  target: 'file-upload.input',
+                  action: 'change->upload#handleFileSelect'
+                } %>
+            <p class="text-xs text-gray-500 group-hover:text-gray-700 transition-colors duration-300">CSV files only</p>
+          </div>
+          <!-- Animated background element -->
+          <div class="absolute inset-0 bg-gradient-to-r from-yellow-100/0 via-yellow-100/30 to-yellow-100/0
+                      -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out">
+          </div>
+        </div>
+      </div>
+      <%= submit_tag "Upload Statement",
+          class: "w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-lg py-2.5 px-4
+                 text-sm font-medium hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300
+                 transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 active:shadow-sm" %>
+    <% end %>
+
+    <!-- Plaid Connection Section -->
+    <div class="w-full mt-1">
+      <div class="flex items-center justify-between">
+      </div>
+      <div class="flex flex-col w-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-4
+                  hover:from-gray-200 hover:to-gray-300 transition-all duration-300 group">
+        <%= form_with url: plaid_sandbox_public_token_path,
+                      method: :post,
+                      class: "w-full",
+                      data: {
+                        controller: "plaid",
+                        action: "submit->plaid#handleSandboxConnection"
+                      } do |f| %>
+          <div class="relative flex flex-col items-center justify-center">
+            <%= f.submit "Connect Bank Account",
+                class: "w-full bg-white/80 backdrop-blur-sm text-gray-700 rounded-lg py-2.5 px-4 text-sm
+                       font-medium transition-all duration-300 flex items-center justify-center gap-2
+                       hover:bg-white hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0" %>
+            <p class="text-xs text-gray-500 mt-2 mb-1 group-hover:text-gray-700 transition-colors duration-300">
+              via
+            </p>
+            <%= image_tag "logos/plaid-logo.svg",
+                class: "h-14 opacity-80 group-hover:opacity-100 transition-opacity duration-300
+                       transform group-hover:scale-105" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Load Test Data Form -->
+    <%= form_with url: load_test_data_transactions_path,
+                  method: :post,
+                  class: "w-full" do |f| %>
+      <%= f.submit "Load Sample Data",
+          class: "w-full bg-white text-gray-700 rounded-lg py-1.5 px-4 text-sm font-medium
+                 hover:bg-gray-50 transition-all duration-300 border border-gray-200
+                 hover:border-gray-300 hover:shadow-sm transform hover:-translate-y-0.5
+                 active:translate-y-0" %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.3) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: shine 2s infinite;
+}
+</style>
+
+<script>
+// Add this if you want to show filename after selection
+document.addEventListener('DOMContentLoaded', function() {
+  const fileInput = document.querySelector('input[type="file"]');
+  const label = document.querySelector('label[for="file"]');
+
+  fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      label.textContent = this.files[0].name;
+      label.classList.add('text-yellow-600');
+    }
+  });
+});
+</script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html scroll-behavior: smooth;>
   <head>
     <title><%= content_for(:title) || "Billi App" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -28,10 +28,10 @@
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
   </head>
 
-  <body class="<%= current_page?(root_path) && !user_signed_in? ? '' : 'bg-gray-100' %>">
-    <%= render "shared/navbar" %>
-    <main class="relative bg-transparent">
+  <body class="<%= current_page?(root_path) && !user_signed_in? ? '' : ' bg-slate-100' %> flex flex-col min-h-screen">
+    <main class="flex-grow">
       <%= yield %>
     </main>
+      <%= render "shared/footer" %>
   </body>
 </html>

@@ -1,13 +1,15 @@
-<div class="w-full p-8 mt-24">
+<div class="w-full px-5">
   <% if user_signed_in? %>
+    <%= render 'shared/navbar' %>
     <!-- Welcome and Upload Section -->
-    <div class="mb-8 flex justify-between items-center">
+    <div class="flex justify-between items-center mt-16 py-5 px-3 w-full">
       <!-- Welcome Message -->
-      <div class="flex items-center gap-8">
-        <h1 class="text-4xl font-bold text-[#19272f]">
-          Welcome, <%= Current.user.name || 'there' %>!
-        </h1>
+      <div class="text-2xl font-bold text-[#19272f]">
+        Welcome, <%= Current.user.name || 'there' %>!
+      </div>
 
+      <!-- Alerts and Manual Transaction -->
+      <div class="flex items-center gap-4">
         <% if flash[:notice] || flash[:alert] %>
           <div class="flex-shrink-0">
             <% if flash[:notice] %>
@@ -23,71 +25,114 @@
             <% end %>
           </div>
         <% end %>
-      </div>
 
-      <!-- Upload Docs Component -->
-      <%= render 'shared/upload_docs' %>
-    </div>
-
-    <!-- Upload Section -->
-    <div class="grid grid-cols-1 gap-6 mb-8">
-      <!-- Upload CSV Card -->
-
-
-      <!-- Quick Stats Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-5 gap-4">
-        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-          <h3 class="text-sm font-medium text-gray-500 mb-1">Total Transactions</h3>
-          <p class="text-2xl font-bold text-[#19272f]">
-            <%= @total_transactions %>
-          </p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-          <h3 class="text-sm font-medium text-gray-500 mb-1">Total Spent</h3>
-          <p class="text-2xl font-bold text-[#19272f]">
-            $<%= number_with_precision(@total_spent, precision: 2) %>
-          </p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-          <h3 class="text-sm font-medium text-gray-500 mb-1">Average Transaction</h3>
-          <p class="text-2xl font-bold text-[#19272f]">
-            $<%= number_with_precision(@average_transaction, precision: 2) %>
-          </p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-          <h3 class="text-sm font-medium text-gray-500 mb-1">Uploads</h3>
-          <p class="text-2xl font-bold text-[#19272f]">
-            <%= (Current.user.analysis_sessions.count + Current.user.plaid_items.count) %>
-          </p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-          <h3 class="text-sm font-medium text-gray-500 mb-1">Payments</h3>
-          <p class="text-2xl font-bold text-[#19272f]">
-            <%= Current.user.transactions.where("amount < 0").count %>
-          </p>
-          <p class="text-sm text-gray-500 mt-1">
-            Total: $<%= number_with_precision(Current.user.transactions.where("amount < 0").sum(:amount).abs, precision: 2, delimiter: ',') %>
-          </p>
+        <!-- Manual Transaction Button -->
+        <div class="flex-shrink-0 w-full lg:w-[17.5rem]">
+          <%= render 'shared/manual_transaction' %>
         </div>
       </div>
     </div>
 
-    <!-- Render Transactions Table -->
-    <%= render 'shared/transactions_table' %>
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10">
+      <!-- Left Side Content (3/4) -->
+      <div class="lg:col-span-3 flex flex-col space-y-6">
+        <!-- Stats Grid -->
+        <div class="carousel carousel-center max-w-full space-x-4 rounded-box">
+          <!-- Total Spent Card -->
+          <div class="carousel-item">
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 w-72 hover:shadow-lg transition-all duration-300">
+              <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center">
+                <i class="fas fa-wallet text-blue-500 mr-2"></i>
+                Total Spent
+              </h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                $<%= number_with_precision(@total_spent, precision: 2) %>
+              </p>
+            </div>
+          </div>
 
-    <!-- Chart Section -->
-    <div class="mt-8">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h3 class="text-xl font-semibold text-[#19272f] flex items-center gap-2">
-          <i class="fas fa-chart-bar text-[#ffd500]"></i> Spending Analysis
-        </h3>
+          <!-- Payments Card -->
+          <div class="carousel-item">
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 w-72 hover:shadow-lg transition-all duration-300">
+              <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center">
+                <i class="fas fa-credit-card text-green-500 mr-2"></i>
+                Payments
+              </h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                <%= Current.user.transactions.where("amount < 0").count %>
+              </p>
+              <p class="text-sm text-gray-500 mt-1">
+                Total: $<%= number_with_precision(Current.user.transactions.where("amount < 0").sum(:amount).abs, precision: 2, delimiter: ',') %>
+              </p>
+            </div>
+          </div>
+
+          <!-- Average Transaction Card -->
+          <div class="carousel-item">
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 w-72 hover:shadow-lg transition-all duration-300">
+              <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center">
+                <i class="fas fa-chart-line text-purple-500 mr-2"></i>
+                Average Transaction
+              </h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                $<%= number_with_precision(@average_transaction, precision: 2) %>
+              </p>
+            </div>
+          </div>
+
+          <!-- Uploads Card -->
+          <div class="carousel-item">
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 w-72 hover:shadow-lg transition-all duration-300">
+              <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center">
+                <i class="fas fa-cloud-upload-alt text-yellow-500 mr-2"></i>
+                Uploads
+              </h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                <%= (Current.user.analysis_sessions.count + Current.user.plaid_items.count) %>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts and Stats Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <!-- Stats Cards -->
+          <div class="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-4">
+
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Total Transactions</h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                <%= @total_transactions %>
+              </p>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Total Debt</h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                $4,523.67
+              </p>
+            </div>
+            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+              <h3 class="text-sm font-medium text-gray-500 mb-1">Total Income</h3>
+              <p class="text-2xl font-bold text-[#19272f]">
+                $8,945.21
+              </p>
+            </div>
+          </div>
+
+          <!-- Chart Section -->
+          <div class="lg:col-span-3">
+            <%= render 'shared/charts' %>
+          </div>
+        </div>
       </div>
-      <%= render 'shared/charts' %>
+
+      <!-- Right Side Upload Card (1/4) -->
+      <div class="lg:col-span-1">
+        <%= render 'shared/upload_docs_card' %>
+      </div>
     </div>
+
   <% else %>
     <div class="text-center py-12">
       <h1 class="text-4xl font-bold text-[#19272f] mb-4">Welcome to Billi</h1>
@@ -104,4 +149,7 @@
       </div>
     </div>
   <% end %>
+
+  <!-- Render Transactions Table -->
+  <%= render 'shared/transactions_table' %>
 </div>

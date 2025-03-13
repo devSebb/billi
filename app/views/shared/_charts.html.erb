@@ -2,10 +2,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <% end %>
 
-<div class="container mx-auto px-4" data-controller="chart">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="w-full"
+     data-controller="chart"
+     data-total-spent="<%= @total_spent %>"
+     data-total-payments="<%= Current.user.transactions.where("amount < 0").sum(:amount).abs %>">
+  <%# <div class="grid grid-cols-1 lg:grid-cols-1 gap-6"> %>
     <!-- Bar Chart Card -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+    <%# <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-lg font-medium text-gray-900">Spending Breakdown</h2>
         <div class="flex gap-3">
@@ -27,30 +30,20 @@
       <div class="h-[400px] relative">
         <canvas data-chart-target="barChart"></canvas>
       </div>
-    </div>
+    </div> %>
 
-    <!-- Doughnut Chart Card -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-lg font-medium text-gray-900">Distribution</h2>
-        <select data-chart-target="doughnutGroupBy"
-                class="w-32 text-gray-900 rounded-md border-gray-200 text-sm">
-          <option value="category">Category</option>
-          <option value="country">Country</option>
-          <option value="merchant">Merchant</option>
-        </select>
-      </div>
-      <div class="flex flex-col items-center">
-        <div class="relative w-full max-w-[350px] h-[350px]">
-          <canvas data-chart-target="doughnutChart"></canvas>
+    <!-- Line Chart Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 w-full">
+      <div class="flex flex-col items-center w-full">
+        <div class="relative w-full h-[350px] md:h-[400px] lg:h-[450px] text-black">
+          <canvas data-chart-target="lineChart"></canvas>
         </div>
-        <div class="mt-4 text-center">
-          <span data-chart-target="doughnutTotal" class="text-xl font-semibold text-gray-900"></span>
-          <p class="text-sm text-gray-500">Total Expenses</p>
+        <div class="mt-3 text-center">
+          <p class="text-sm text-gray-500">Total Spent vs Payments</p>
         </div>
       </div>
     </div>
-  </div>
+  <%# </div> %>
 </div>
 
 <style>
@@ -65,5 +58,6 @@
 
   canvas {
     max-height: 100% !important;
+    width: 100% !important;
   }
 </style>

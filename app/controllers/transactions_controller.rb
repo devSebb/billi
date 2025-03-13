@@ -9,6 +9,18 @@ class TransactionsController < ApplicationController
   protect_from_forgery with: :exception, prepend: true
   skip_before_action :verify_authenticity_token, only: [ :chart_data ]
 
+  # POST /transactions
+  # Creates a new manual transaction
+  def create
+    @transaction = current_user.transactions.new(transaction_params)
+
+    if @transaction.save
+      redirect_to root_path, notice: "Transaction was successfully created."
+    else
+      redirect_to root_path, alert: "Error creating transaction: #{@transaction.errors.full_messages.join(', ')}"
+    end
+  end
+
   # GET /transactions/new
   # Renders the CSV upload form
   def new
@@ -97,29 +109,18 @@ class TransactionsController < ApplicationController
   end
 
   def clean_amount(amount_str)
-    return nil if amount_str.nil? || amount_str.strip.empty?  # Handle nil or empty strings
+    return nil if amount_str.blank?
 
-    amount_str = amount_str.to_s.strip  # Remove leading/trailing spaces
+    amount_str = amount_str.to_s.strip
+    is_negative = amount_str.match?(/\A\(\s*.*\s*\)\z/) ||
+                  amount_str.start_with?("-") ||
+                  amount_str.end_with?("-")
 
-    # Handle parentheses for negative amounts (e.g., "(100.00)" -> "-100.00")
-    if amount_str.start_with?("(") && amount_str.end_with?(")")
-      amount_str = "-" + amount_str[1..-2]
-    end
+    cleaned = amount_str.gsub(/[()]/, "").gsub(/[^0-9.-]/, "")
+    cleaned = cleaned.gsub(/-+/, "")
+    cleaned = "-#{cleaned}" if is_negative
 
-    # Remove non-numeric characters except digits, decimal point, and minus sign
-    cleaned = amount_str.gsub(/[^0-9.-]/, "")
-
-    # Handle trailing minus sign (e.g., "100.00-" -> "-100.00")
-    if cleaned.end_with?("-")
-      cleaned = "-" + cleaned.chop
-    end
-
-    # Convert to float, return nil if parsing fails
-    begin
-      Float(cleaned)
-    rescue ArgumentError, TypeError
-      nil
-    end
+    Float(cleaned) rescue nil
   end
 
   def process_mapped_csv
@@ -176,10 +177,10 @@ class TransactionsController < ApplicationController
   # Displays the analysis of transactions in a table and via Chart.js
   def index
     @transactions = Current.user.transactions.includes(:analysis_session, :plaid_item)
-    base_transactions = current_user.transactions
-    sorted_transactions = sort_transactions(base_transactions)
+    filtered_transactions = filter_transactions(@transactions)
+    sorted_transactions = sort_transactions(filtered_transactions)
     @pagy, @transactions = pagy(sorted_transactions)
-    @chart_data = base_transactions.group(:category).sum(:amount)
+    @chart_data = filtered_transactions.group(:category).sum(:amount)
   end
 
   def reset
@@ -264,6 +265,10 @@ class TransactionsController < ApplicationController
 
   private
 
+  def transaction_params
+    params.require(:transaction).permit(:amount, :currency, :country, :category, :merchant, :transaction_date)
+  end
+
   def validate_csv_headers(headers)
     required_headers = [ "amount", "currency", "country", "category", "merchant", "transaction_date" ]
     missing_headers = required_headers - headers
@@ -271,24 +276,6 @@ class TransactionsController < ApplicationController
       raise "Missing required headers: #{missing_headers.join(', ')}"
     end
   end
-
-  # def clean_amount(value)
-  #   return nil if value.blank?
-
-  #   amount_str = value.to_s.strip
-  #   Rails.logger.info "Processing amount: '#{amount_str}'"
-
-  #   cleaned_str = amount_str.gsub(/[^-\d.]/, "").gsub(/(-)+/, "-").strip
-
-  #   begin
-  #     amount = Float(cleaned_str)
-  #     Rails.logger.info "Processed amount: #{amount}"
-  #     amount
-  #   rescue ArgumentError => e
-  #     Rails.logger.error "Failed to parse amount '#{amount_str}': #{e.message}"
-  #     nil
-  #   end
-  # end
 
   def clean_string(value, default: "")
     return default if value.blank?

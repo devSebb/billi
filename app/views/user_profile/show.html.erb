@@ -1,4 +1,5 @@
-<div class="mx-auto p-8 mt-16 min-h-screen">
+<div class="mx-auto p-8 mt-10 min-h-screen">
+  <%= render 'shared/navbar' %>
 
     <!-- Header Section -->
     <div class="p-8 flex justify-between items-center">
@@ -7,6 +8,7 @@
         <p class="text-[#19272f] text-sm">Manage your account and connections</p>
       </div>
       <div class="flex items-center gap-4">
+        <%= render 'shared/upload_docs' %>
         <%= link_to edit_user_registration_path,
             class: 'inline-flex items-center px-4 py-2 border border-[#19272f] rounded-md shadow-sm text-sm font-medium text-[#19272f] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500]' do %>
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

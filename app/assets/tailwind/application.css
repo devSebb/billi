@@ -3,6 +3,7 @@
 
 /* Base Styles */
 :root {
+  --primary-light: #f0f0f0;
   --primary-dark: #19272f;
   --primary-yellow: #ffd500;
   --primary-yellow-hover: #e6c000;
