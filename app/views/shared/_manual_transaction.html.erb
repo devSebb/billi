@@ -12,6 +12,19 @@
     <h3 class="text-2xl font-bold text-gray-100 mb-6">Add Manual Transaction</h3>
 
     <%= form_with(model: Transaction.new, local: true, class: "space-y-6") do |f| %>
+      <div class="form-control">
+        <%= f.label :transaction_type, "Type", class: "label font-medium text-gray-300" %>
+        <div class="flex gap-4 ">
+          <label class="flex items-center cursor-pointer mt-2">
+            <%= f.radio_button :transaction_type, 'expense', class: "radio radio-primary mr-2" %>
+            <span class="text-gray-300">Expense</span>
+          </label>
+          <label class="flex items-center cursor-pointer mt-2">
+            <%= f.radio_button :transaction_type, 'income', class: "radio radio-primary mr-2" %>
+            <span class="text-gray-300 ">Income</span>
+          </label>
+        </div>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Amount Field -->
         <div class="form-control">
@@ -31,13 +44,34 @@
         <!-- Merchant Field -->
         <div class="form-control">
           <%= f.label :merchant, class: "label font-medium text-gray-300" %>
-          <%= f.text_field :merchant, required: true, class: "input input-bordered w-full", placeholder: "Enter merchant name" %>
+          <%= f.text_field :merchant, required: true, class: "input input-bordered w-full", placeholder: "Enter description" %>
         </div>
 
         <!-- Category Field -->
         <div class="form-control">
           <%= f.label :category, class: "label font-medium text-gray-300" %>
-          <%= f.text_field :category, required: true, class: "input input-bordered w-full", placeholder: "Enter category" %>
+          <div class="dropdown dropdown-bottom w-full">
+            <label tabindex="0" class="input input-bordered w-full flex items-center justify-between cursor-pointer">
+              <span id="selected-category">Select category</span>
+              <i class="fas fa-chevron-down"></i>
+            </label>
+            <ul tabindex="0" id="expense-categories" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-full hidden">
+              <li><a onclick="selectCategory(this, 'Groceries')">Groceries</a></li>
+              <li><a onclick="selectCategory(this, 'Rent')">Rent</a></li>
+              <li><a onclick="selectCategory(this, 'Transportation')">Transportation</a></li>
+              <li><a onclick="selectCategory(this, 'Restaurants')">Restaurants</a></li>
+              <li><a onclick="selectCategory(this, 'Drinks')">Drinks</a></li>
+              <li><a onclick="selectCategory(this, 'Shopping')">Shopping</a></li>
+              <li><a onclick="selectCategory(this, 'Entertainment')">Entertainment</a></li>
+            </ul>
+            <ul tabindex="0" id="income-categories" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-full hidden">
+              <li><a onclick="selectCategory(this, 'Cash on Hand')">Cash on Hand</a></li>
+              <li><a onclick="selectCategory(this, 'Investments (current Value)')">Investments (current Value)</a></li>
+              <li><a onclick="selectCategory(this, 'Salary')">Salary</a></li>
+              <li><a onclick="selectCategory(this, 'Debt Payment')">Debt Payment</a></li>
+            </ul>
+            <%= f.hidden_field :category, id: 'category-field' %>
+          </div>
         </div>
 
         <!-- Currency Field -->
@@ -69,3 +103,54 @@
     <% end %>
   </div>
 </dialog>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const expenseRadio = document.querySelector('input[value="expense"]');
+    const incomeRadio = document.querySelector('input[value="income"]');
+    const expenseCategories = document.getElementById('expense-categories');
+    const incomeCategories = document.getElementById('income-categories');
+    const form = document.querySelector('form');
+    const amountField = document.querySelector('input[name="transaction[amount]"]');
+
+    function updateCategoryVisibility() {
+      if (expenseRadio.checked) {
+        expenseCategories.classList.remove('hidden');
+        incomeCategories.classList.add('hidden');
+      } else if (incomeRadio.checked) {
+        expenseCategories.classList.add('hidden');
+        incomeCategories.classList.remove('hidden');
+      }
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      let amount = parseFloat(amountField.value);
+
+      // Always use absolute value first to clean up the input
+      amount = Math.abs(amount);
+
+      // If it's income, make it negative
+      if (incomeRadio.checked) {
+        amountField.value = amount;
+      }
+      // If it's expense, keep it positive
+      else if (expenseRadio.checked) {
+        amountField.value = -amount;
+      }
+
+      this.submit();
+    });
+
+    expenseRadio.addEventListener('change', updateCategoryVisibility);
+    incomeRadio.addEventListener('change', updateCategoryVisibility);
+
+    // Set initial state
+    updateCategoryVisibility();
+  });
+
+  function selectCategory(element, category) {
+    document.getElementById('selected-category').textContent = category;
+    document.getElementById('category-field').value = category;
+  }
+</script>

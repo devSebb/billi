@@ -229,7 +229,8 @@ export default class extends Controller {
         title: {
           display: true,
           text: 'Monthly Transaction Trends',
-          font: { size: 16 }
+          font: { size: 16 },
+          color: 'rgb(203 213 225)'
         },
         legend: {
           display: false
@@ -244,17 +245,23 @@ export default class extends Controller {
           display: true,
           title: {
             display: true,
-            text: 'Month'
+            text: 'Month',
+            color: 'rgb(203 213 225)'
+          },
+          ticks: {
+            color: 'rgb(203 213 225)'
           }
         },
         y: {
           display: true,
           title: {
             display: true,
-            text: 'Amount'
+            text: 'Amount',
+            color: 'rgb(203 213 225)'
           },
           ticks: {
-            callback: (value) => this.formatCurrency(value)
+            callback: (value) => this.formatCurrency(value),
+            color: 'rgb(203 213 225)'
           }
         }
       }

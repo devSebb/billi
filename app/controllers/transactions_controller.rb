@@ -22,7 +22,6 @@ class TransactionsController < ApplicationController
   end
 
   # GET /transactions/new
-  # Renders the CSV upload form
   def new
   end
 
@@ -110,17 +109,11 @@ class TransactionsController < ApplicationController
 
   def clean_amount(amount_str)
     return nil if amount_str.blank?
-
     amount_str = amount_str.to_s.strip
-    is_negative = amount_str.match?(/\A\(\s*.*\s*\)\z/) ||
-                  amount_str.start_with?("-") ||
-                  amount_str.end_with?("-")
-
     cleaned = amount_str.gsub(/[()]/, "").gsub(/[^0-9.-]/, "")
-    cleaned = cleaned.gsub(/-+/, "")
-    cleaned = "-#{cleaned}" if is_negative
-
-    Float(cleaned) rescue nil
+    amount = Float(cleaned) rescue nil
+    return nil if amount.nil?
+    amount
   end
 
   def process_mapped_csv
@@ -349,12 +342,10 @@ class TransactionsController < ApplicationController
       mapping[:amount] = original_headers[headers_downcase.index { |h| h.include?("amount") }]
     end
 
-    # Map transaction_date column: any header that includes "date"
     if headers_downcase.any? { |h| h.include?("date") }
       mapping[:transaction_date] = original_headers[headers_downcase.index { |h| h.include?("date") }]
     end
 
-    # Optional mappings – if available in CSV
     if headers_downcase.any? { |h| h.include?("category") }
       mapping[:category] = original_headers[headers_downcase.index { |h| h.include?("category") }]
     end
