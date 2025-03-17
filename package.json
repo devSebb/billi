@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/devSebb/billi#readme",
   "dependencies": {
-    "daisyui": "^5.0.0"
+    "daisyui": "^5.0.0",
+    "gsap": "^3.12.7"
   }
 }

@@ -173,7 +173,42 @@ class TransactionsController < ApplicationController
     filtered_transactions = filter_transactions(@transactions)
     sorted_transactions = sort_transactions(filtered_transactions)
     @pagy, @transactions = pagy(sorted_transactions)
-    @chart_data = filtered_transactions.group(:category).sum(:amount)
+
+    @time_series_data = {
+      dates: [],
+      spent: [],
+      assets: []
+    }
+
+    # Get monthly data
+    monthly_data = Current.user.transactions.group_by_month(:transaction_date).group(:category).sum(:amount)
+
+    # Process the data
+    dates = monthly_data.keys.map(&:first).uniq
+    @time_series_data = {
+      # Format dates as "Month Year" (e.g. "January 2024")
+      dates: dates.map { |date| date.strftime("%B %Y") },
+
+      # Calculate total spending per month (excluding Assets category)
+      spent: dates.map do |date|
+        monthly_spending = monthly_data.select do |key, _|
+          month = key[0]
+          category = key[1]
+          month == date && category != "Salary"
+        end
+        monthly_spending.values.sum
+      end,
+
+      # Calculate total assets per month (absolute value)
+      assets: dates.map do |date|
+        monthly_assets = monthly_data.select do |key, _|
+          month = key[0]
+          category = key[1]
+          month == date && category == "Salary"
+        end
+        monthly_assets.values.sum.abs
+      end
+    }
   end
 
   def reset
@@ -256,6 +291,26 @@ class TransactionsController < ApplicationController
     redirect_to user_profile_path, alert: "CSV file not found."
   end
 
+  def time_series_data
+    # Group transactions by month and calculate totals
+    monthly_data = Current.user.transactions.group_by_month(:transaction_date).group(:category).sum(:amount)
+
+    # Process the data into the format needed for the chart
+    dates = monthly_data.keys.map(&:first).uniq
+    spent_by_month = dates.map do |date|
+      monthly_data.select { |k, _| k[0] == date && k[1] != "Assets" }.values.sum
+    end
+    assets_by_month = dates.map do |date|
+      monthly_data.select { |k, _| k[0] == date && k[1] == "Assets" }.values.sum.abs
+    end
+
+    render json: {
+      dates: dates.map { |d| d.strftime("%B %Y") },
+      spent: spent_by_month,
+      assets: assets_by_month
+    }
+  end
+
   private
 
   def transaction_params
@@ -284,9 +339,8 @@ class TransactionsController < ApplicationController
   def clean_date(value)
     return Date.today if value.blank?
 
-    # Try to parse the date string
     begin
-      # First try parsing as a number (Excel date)
+      # Parsing as a number
       if value.to_s.match?(/^\d+$/)
         base_date = Date.new(1899, 12, 30)
         return base_date + value.to_i
@@ -301,8 +355,8 @@ class TransactionsController < ApplicationController
       # Try various date formats
       date_formats = [
         "%Y-%m-%d",
-        "%d/%m/%Y",
         "%m/%d/%Y",
+        "%d/%m/%Y",
         "%d-%m-%Y",
         "%Y/%m/%d",
         "%d.%m.%Y",
@@ -368,5 +422,20 @@ class TransactionsController < ApplicationController
     end
 
     mapping
+  end
+
+  def prepare_time_series_data
+    monthly_data = Current.user.transactions.group_by_month(:transaction_date).group(:category).sum(:amount)
+    dates = monthly_data.keys.map(&:first).uniq
+
+    {
+      dates: dates.map { |d| d.strftime("%B %Y") },
+      spent: dates.map do |date|
+        monthly_data.select { |k, _| k[0] == date && k[1] != "Assets" }.values.sum
+      end,
+      assets: dates.map do |date|
+        monthly_data.select { |k, _| k[0] == date && k[1] == "Assets" }.values.sum.abs
+      end
+    }
   end
 end

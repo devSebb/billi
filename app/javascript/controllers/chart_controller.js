@@ -2,11 +2,22 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = ["barChart", "doughnutChart", "lineChart", "barGroupBy", "barAggregate", "doughnutGroupBy", "doughnutTotal"]
+  static values = {
+    timeSeries: { type: Object, default: { dates: [], spent: [], assets: [] } }
+  }
 
   connect() {
-    // Wait for Chart.js to load
+    console.log("Chart controller connected");
+    console.log("Time series data:", this.timeSeriesValue);
+
+    // Load Chart.js first
     this.loadChartJs().then(() => {
-      this.initializeCharts()
+      console.log("Chart.js loaded");
+      if (this.timeSeriesValue && Object.keys(this.timeSeriesValue).length > 0) {
+        this.initializeCharts();
+      } else {
+        console.log("No time series data available");
+      }
     })
   }
 
@@ -72,9 +83,8 @@ export default class extends Controller {
   }
 
   initializeLineChart() {
-    const spentData = this.element.dataset.totalSpent
-    const paymentsData = this.element.dataset.totalPayments
-    this.updateLineChart(JSON.parse(spentData), JSON.parse(paymentsData))
+    const timeSeriesData = this.timeSeriesValue
+    this.updateLineChart(timeSeriesData)
   }
 
   handleBarChartChange() {
@@ -159,7 +169,7 @@ export default class extends Controller {
     }
   }
 
-  async updateLineChart(spentData, paymentsData) {
+  async updateLineChart(data) {
     if (!this.hasLineChartTarget) return
 
     try {
@@ -167,16 +177,35 @@ export default class extends Controller {
         this.lineChart.destroy()
       }
 
+      // Format dates to "Sep. 14 '25" style
+      const formattedDates = data.dates.map(date => {
+        const d = new Date(date)
+        return d.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: '2-digit'
+        })
+      })
+
       const ctx = this.lineChartTarget.getContext('2d')
       this.lineChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: ['Spent', 'Payments'],
+          labels: formattedDates,
           datasets: [{
-            label: 'Transaction Overview',
-            data: [spentData, paymentsData],
+            label: 'Total Spent',
+            data: Object.values(data.spent),
+            borderColor: '#94A3B8',
+            backgroundColor: 'rgba(248, 113, 113, 0.2)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+          },
+          {
+            label: 'Assets',
+            data: Object.values(data.assets),
+            borderColor: '#EAB308',
             backgroundColor: 'rgba(79, 70, 229, 0.2)',
-            borderColor: '#4F46E5',
             borderWidth: 2,
             tension: 0.3,
             fill: true
@@ -228,12 +257,16 @@ export default class extends Controller {
       plugins: {
         title: {
           display: true,
-          text: 'Monthly Transaction Trends',
+          text: 'Assets vs Spending Over Time',
           font: { size: 16 },
           color: 'rgb(203 213 225)'
         },
         legend: {
-          display: false
+          display: true,
+          position: 'top',
+          labels: {
+            color: 'rgb(203 213 225)'
+          }
         }
       },
       interaction: {
@@ -244,8 +277,8 @@ export default class extends Controller {
         x: {
           display: true,
           title: {
-            display: true,
-            text: 'Month',
+            display: false,
+            text: 'Date',
             color: 'rgb(203 213 225)'
           },
           ticks: {
@@ -255,12 +288,16 @@ export default class extends Controller {
         y: {
           display: true,
           title: {
-            display: true,
-            text: 'Amount',
+            display: false,
+            text: 'Amount ($)',
             color: 'rgb(203 213 225)'
           },
           ticks: {
-            callback: (value) => this.formatCurrency(value),
+            callback: (value) => new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+              maximumFractionDigits: 0
+            }).format(value),
             color: 'rgb(203 213 225)'
           }
         }

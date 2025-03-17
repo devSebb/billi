@@ -6,3 +6,9 @@ import ChartController from "./controllers/chart_controller"
 
 const application = Application.start()
 application.register("chart", ChartController)
+
+document.addEventListener("turbo:load", () => {
+  if (typeof gsap !== 'undefined') {
+    console.log("GSAP loaded successfully");
+  }
+});

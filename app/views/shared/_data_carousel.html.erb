@@ -1,0 +1,118 @@
+<%
+  cards_data = [
+    {
+      title: 'Net Worth',
+      icon: 'coins',
+      icon_color: 'text-amber-400',
+      value: number_with_precision(@net_worth, precision: 2),
+      prefix: '$',
+      subtitle: nil
+    },
+    {
+      title: 'Cash On Hand',
+      icon: 'money-bill-wave',
+      icon_color: 'text-sky-600',
+      value: number_with_precision(@cash_on_hand, precision: 2),
+      prefix: '$',
+      subtitle: nil
+    },
+    {
+      title: 'Number of Transactions',
+      icon: 'shopping-cart',
+      icon_color: 'text-orange-500',
+      value: number_with_precision(@total_transactions, precision: 0),
+      prefix: '',
+      subtitle: nil
+    },
+    {
+      title: 'Payments',
+      icon: 'money-bill-wave',
+      icon_color: 'text-emerald-500',
+      value: Current.user.transactions.where("amount < 0").count,
+      prefix: '',
+      subtitle: "Total: $#{number_with_precision(Current.user.transactions.where('amount < 0').sum(:amount).abs, precision: 2, delimiter: ',')}"
+    },
+    {
+      title: 'Top Category',
+      icon: 'crown',
+      icon_color: 'text-yellow-500',
+      value: @top_category,
+      prefix: '',
+      subtitle: nil
+    },
+    {
+      title: 'Average Transaction',
+      icon: 'calculator',
+      icon_color: 'text-green-500',
+      value: number_with_precision(@average_transaction, precision: 2),
+      prefix: '$',
+      subtitle: nil
+    },
+    {
+      title: 'Countries Spent',
+      icon: 'globe-americas',
+      icon_color: 'text-blue-300',
+      value: Current.user.transactions.distinct.pluck(:country).count,
+      prefix: '',
+      subtitle: nil
+    },
+    {
+      title: 'Uploads',
+      icon: 'cloud-arrow-up',
+      icon_color: 'text-indigo-500',
+      value: (Current.user.analysis_sessions.count + Current.user.plaid_items.count),
+      prefix: '',
+      subtitle: nil
+    }
+  ]
+%>
+
+
+<div class="carousel carousel-center max-w-full space-x-4 rounded-box">
+  <% cards_data.each_with_index do |card, index| %>
+    <div class="carousel-item">
+      <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 w-72 hover:shadow-lg transition-all duration-300">
+        <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between cursor-pointer" onclick="my_modal_<%= index %>.showModal()">
+          <div class="flex items-center">
+            <i class="fas fa-<%= card[:icon] %> <%= card[:icon_color] %> mr-2"></i>
+            <%= card[:title] %>
+          </div>
+          <%= image_tag "icons/Diagonal_Arrow.svg", class: "w-3 h-3" %>
+        </h3>
+        <p class="text-2xl font-bold text-[#19272f] mt-4">
+          <%= card[:prefix] %><%= card[:value] %>
+        </p>
+        <% if card[:subtitle] %>
+          <p class="text-sm text-gray-500">
+            <%= card[:subtitle] %>
+          </p>
+        <% end %>
+      </div>
+
+      <!-- Modal for this card -->
+      <dialog id="my_modal_<%= index %>" class="modal">
+        <div class="modal-box">
+          <h3 class="font-bold text-lg flex items-center">
+            <i class="fas fa-<%= card[:icon] %> text-<%= card[:icon_color] %>-500 text-red-500 mr-2"></i>
+            <%= card[:title] %> Details
+          </h3>
+          <p class="py-4">
+            Value: <%= card[:prefix] %><%= card[:value] %>
+            <% if card[:subtitle] %>
+              <br>
+              <%= card[:subtitle] %>
+            <% end %>
+          </p>
+          <div class="modal-action">
+            <form method="dialog">
+              <button class="btn">Close</button>
+            </form>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    </div>
+  <% end %>
+</div>

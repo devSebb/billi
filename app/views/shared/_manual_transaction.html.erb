@@ -1,156 +1,102 @@
-<!-- Manual Transaction Button -->
-<div class="w-full lg:w-[18rem] items-end">
-  <button onclick="manual_transaction_modal.showModal()" class="w-full bg-gradient-to-r from-gray-600 to-blue-950 hover:from-indigo-600 hover:to-purple-700 text-white font-medium px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
-    <i class="fas fa-plus text-white/90"></i>
-    <span>Add Transaction</span>
-  </button>
-</div>
 
-<!-- Manual Transaction Modal -->
-<dialog id="manual_transaction_modal" class="modal">
-  <div class="modal-box w-11/12 max-w-5xl">
-    <h3 class="text-2xl font-bold text-gray-100 mb-6">Add Manual Transaction</h3>
-
-    <%= form_with(model: Transaction.new, local: true, class: "space-y-6") do |f| %>
-      <div class="form-control">
-        <%= f.label :transaction_type, "Type", class: "label font-medium text-gray-300" %>
-        <div class="flex gap-4 ">
-          <label class="flex items-center cursor-pointer mt-2">
-            <%= f.radio_button :transaction_type, 'expense', class: "radio radio-primary mr-2" %>
-            <span class="text-gray-300">Expense</span>
-          </label>
-          <label class="flex items-center cursor-pointer mt-2">
-            <%= f.radio_button :transaction_type, 'income', class: "radio radio-primary mr-2" %>
-            <span class="text-gray-300 ">Income</span>
-          </label>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Amount Field -->
-        <div class="form-control">
-          <%= f.label :amount, class: "label font-medium text-gray-300" %>
-          <div class="relative">
-            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300">$</span>
-            <%= f.number_field :amount, step: '0.01', required: true, class: "input input-bordered w-full pl-8", placeholder: "0.00" %>
-          </div>
-        </div>
-
-        <!-- Transaction Date Field -->
-        <div class="form-control">
-          <%= f.label :transaction_date, class: "label font-medium text-gray-300" %>
-          <%= f.date_field :transaction_date, required: true, class: "input input-bordered w-full" %>
-        </div>
-
-        <!-- Merchant Field -->
-        <div class="form-control">
-          <%= f.label :merchant, class: "label font-medium text-gray-300" %>
-          <%= f.text_field :merchant, required: true, class: "input input-bordered w-full", placeholder: "Enter description" %>
-        </div>
-
-        <!-- Category Field -->
-        <div class="form-control">
-          <%= f.label :category, class: "label font-medium text-gray-300" %>
-          <div class="dropdown dropdown-bottom w-full">
-            <label tabindex="0" class="input input-bordered w-full flex items-center justify-between cursor-pointer">
-              <span id="selected-category">Select category</span>
-              <i class="fas fa-chevron-down"></i>
-            </label>
-            <ul tabindex="0" id="expense-categories" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-full hidden">
-              <li><a onclick="selectCategory(this, 'Groceries')">Groceries</a></li>
-              <li><a onclick="selectCategory(this, 'Rent')">Rent</a></li>
-              <li><a onclick="selectCategory(this, 'Transportation')">Transportation</a></li>
-              <li><a onclick="selectCategory(this, 'Restaurants')">Restaurants</a></li>
-              <li><a onclick="selectCategory(this, 'Drinks')">Drinks</a></li>
-              <li><a onclick="selectCategory(this, 'Shopping')">Shopping</a></li>
-              <li><a onclick="selectCategory(this, 'Entertainment')">Entertainment</a></li>
-            </ul>
-            <ul tabindex="0" id="income-categories" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-full hidden">
-              <li><a onclick="selectCategory(this, 'Cash on Hand')">Cash on Hand</a></li>
-              <li><a onclick="selectCategory(this, 'Investments (current Value)')">Investments (current Value)</a></li>
-              <li><a onclick="selectCategory(this, 'Salary')">Salary</a></li>
-              <li><a onclick="selectCategory(this, 'Debt Payment')">Debt Payment</a></li>
-            </ul>
-            <%= f.hidden_field :category, id: 'category-field' %>
-          </div>
-        </div>
-
-        <!-- Currency Field -->
-        <div class="form-control">
-          <%= f.label :currency, class: "label font-medium text-gray-300" %>
-          <%= f.select :currency,
-              options_for_select([['USD', 'USD'], ['EUR', 'EUR'], ['GBP', 'GBP']], 'USD'),
-              {},
-              { class: "select select-bordered w-full" } %>
-        </div>
-
-        <!-- Country Field -->
-        <div class="form-control">
-          <%= f.label :country, class: "label font-medium text-gray-300" %>
-          <%= f.select :country,
-              options_for_select([['United States', 'US'], ['United Kingdom', 'UK'], ['Canada', 'CA']], 'US'),
-              {},
-              { class: "select select-bordered w-full" } %>
-        </div>
-      </div>
-
-      <div class="modal-action flex justify-end gap-3">
-        <!-- Close button -->
-        <button type="button" class="btn btn-outline" onclick="manual_transaction_modal.close()">Cancel</button>
-
-        <!-- Submit button -->
-        <%= f.submit "Add Transaction", class: "btn bg-[#19272f] hover:bg-gray-700 text-white" %>
-      </div>
-    <% end %>
+<div data-controller="manual-transaction">
+  <!-- Manual Transaction Button -->
+  <div class="w-full lg:w-[18rem] items-end">
+    <button data-action="manual-transaction#showModal" class="w-full bg-gradient-to-r from-gray-600 to-blue-950 hover:from-indigo-600 hover:to-purple-700 text-white font-medium px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+      <i class="fas fa-plus text-white/90"></i>
+      <span>Add Transaction</span>
+    </button>
   </div>
-</dialog>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const expenseRadio = document.querySelector('input[value="expense"]');
-    const incomeRadio = document.querySelector('input[value="income"]');
-    const expenseCategories = document.getElementById('expense-categories');
-    const incomeCategories = document.getElementById('income-categories');
-    const form = document.querySelector('form');
-    const amountField = document.querySelector('input[name="transaction[amount]"]');
+  <!-- Manual Transaction Modal -->
+  <dialog id="manual_transaction_modal" class="modal modal-backdrop-blur modal-backdrop-brightness-10" data-manual-transaction-target="modal">
+    <div class="modal-box w-11/12 max-w-5xl">
+      <h3 class="text-2xl font-bold text-gray-100 mb-6">Add Manual Transaction</h3>
 
-    function updateCategoryVisibility() {
-      if (expenseRadio.checked) {
-        expenseCategories.classList.remove('hidden');
-        incomeCategories.classList.add('hidden');
-      } else if (incomeRadio.checked) {
-        expenseCategories.classList.add('hidden');
-        incomeCategories.classList.remove('hidden');
-      }
-    }
+      <%= form_with(model: Transaction.new, local: true, class: "space-y-6", data: { turbo: false, action: "submit->manual-transaction#handleSubmit" }) do |f| %>
+        <!-- Radio buttons -->
+        <div class="form-control">
+          <%= f.label :transaction_type, "Type", class: "label font-medium text-gray-300" %>
+          <div class="flex gap-4">
+            <label class="flex items-center cursor-pointer mt-2">
+              <%= f.radio_button :transaction_type, 'expense', class: "radio radio-primary mr-2", data: { manual_transaction_target: "expenseRadio", action: "change->manual-transaction#updateCategoryVisibility" } %>
+              <span class="text-gray-300">Expense</span>
+            </label>
+            <label class="flex items-center cursor-pointer mt-2">
+              <%= f.radio_button :transaction_type, 'income', class: "radio radio-primary mr-2", data: { manual_transaction_target: "incomeRadio", action: "change->manual-transaction#updateCategoryVisibility" } %>
+              <span class="text-gray-300">Income</span>
+            </label>
+          </div>
+        </div>
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      let amount = parseFloat(amountField.value);
+        <!-- Amount Field -->
+        <div class="grid grid-cols-2 gap-4">
+          <div class="form-control">
+            <%= f.label :amount, class: "label font-medium text-gray-300" %>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300">$</span>
+              <%= f.number_field :amount, step: '0.01', required: true, class: "input input-bordered w-full pl-8", placeholder: "0.00", data: { manual_transaction_target: "amountField" } %>
+            </div>
+          </div>
+          <!-- Transaction Date Field -->
+          <div class="form-control">
+            <%= f.label :transaction_date, class: "label font-medium text-gray-300" %>
+            <%= f.date_field :transaction_date, required: true, class: "input input-bordered w-full" %>
+          </div>
+          <!-- Merchant Field -->
+          <div class="form-control">
+            <%= f.label :merchant, class: "label font-medium text-gray-300" %>
+            <%= f.text_field :merchant, required: true, class: "input input-bordered w-full", placeholder: "Enter description" %>
+          </div>
+          <!-- Category Field -->
+          <div class="form-control">
+            <%= f.label :category, class: "label font-medium text-gray-300" %>
+            <div class="dropdown dropdown-bottom w-full">
+              <label tabindex="0" class="input input-bordered w-full flex items-center justify-between cursor-pointer">
+                <span data-manual-transaction-target="selectedCategory">Select category</span>
+                <i class="fas fa-chevron-down"></i>
+              </label>
+              <ul tabindex="0" data-manual-transaction-target="expenseCategories" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-full hidden">
+                <li><a data-action="manual-transaction#selectCategory">Groceries</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Rent</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Transportation</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Restaurants</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Drinks</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Shopping</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Entertainment</a></li>
+              </ul>
+              <ul tabindex="0" data-manual-transaction-target="incomeCategories" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-full hidden">
+                <li><a data-action="manual-transaction#selectCategory">Cash on Hand</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Investments</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Salary</a></li>
+                <li><a data-action="manual-transaction#selectCategory">Debt Payment</a></li>
+              </ul>
+              <%= f.hidden_field :category, data: { manual_transaction_target: "categoryField" } %>
+            </div>
+          </div>
+          <!-- Currency Field -->
+          <div class="form-control">
+            <%= f.label :currency, class: "label font-medium text-gray-300" %>
+            <%= f.select :currency,
+                options_for_select([['USD', 'USD'], ['EUR', 'EUR'], ['GBP', 'GBP']], 'USD'),
+                {},
+                { class: "select select-bordered w-full" } %>
+          </div>
+          <!-- Country Field -->
+          <div class="form-control">
+            <%= f.label :country, class: "label font-medium text-gray-300" %>
+            <%= f.select :country,
+                options_for_select([['United States', 'US'], ['United Kingdom', 'UK'], ['Canada', 'CA']], 'US'),
+                {},
+                { class: "select select-bordered w-full" } %>
+          </div>
+        </div>
 
-      // Always use absolute value first to clean up the input
-      amount = Math.abs(amount);
-
-      // If it's income, make it negative
-      if (incomeRadio.checked) {
-        amountField.value = amount;
-      }
-      // If it's expense, keep it positive
-      else if (expenseRadio.checked) {
-        amountField.value = -amount;
-      }
-
-      this.submit();
-    });
-
-    expenseRadio.addEventListener('change', updateCategoryVisibility);
-    incomeRadio.addEventListener('change', updateCategoryVisibility);
-
-    // Set initial state
-    updateCategoryVisibility();
-  });
-
-  function selectCategory(element, category) {
-    document.getElementById('selected-category').textContent = category;
-    document.getElementById('category-field').value = category;
-  }
-</script>
+        <div class="modal-action flex justify-end gap-3">
+          <button type="button" class="btn btn-outline" data-action="manual-transaction#closeModal">Cancel</button>
+          <%= f.submit "Add Transaction", class: "btn bg-[#19272f] hover:bg-gray-700 text-white" %>
+        </div>
+      <% end %>
+    </div>
+  </dialog>
+</div>

@@ -10,13 +10,18 @@
 }
 
 /* Typography */
+html, body {
+  font-family: 'Helvetica', sans-serif;
+}
+
 .logo-font {
-  font-family: 'Righteous', cursive;
+  font-family: 'Helvetica', sans-serif;
 }
 
 /* Button Styles */
 .btn-primary {
   @apply bg-[#19272f] hover:bg-gray-700 text-white;
+
 }
 
 .btn-secondary {

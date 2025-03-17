@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html scroll-behavior: smooth;>
+<html style="scroll-behavior: smooth;">
   <head>
     <title><%= content_for(:title) || "Billi App" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -16,6 +16,9 @@
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <%= javascript_include_tag "landing_animations", "data-turbo-track": "reload" %>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +29,7 @@
       }
     </style>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
 
   <body class="<%= current_page?(root_path) && !user_signed_in? ? '' : ' bg-slate-100' %> flex flex-col min-h-screen">
