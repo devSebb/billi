@@ -12,6 +12,28 @@ class Transaction < ApplicationRecord
 
   after_create :log_creation
 
+  include PgSearch::Model
+  pg_search_scope :search, against: {
+    merchant: "A",
+    category: "B",
+    country: "C"
+  }, using: {
+    tsearch: {
+      prefix: true,
+      dictionary: "simple"
+    }
+  }
+
+  # Add a scope for searching with aggregations
+  scope :search_with_aggregates, ->(query) {
+    if query.present?
+      base = search(query)
+      base.select("transactions.*, pg_search_rank() as search_rank")
+    else
+      all
+    end
+  }
+
   private
 
   def log_creation

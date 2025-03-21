@@ -84,13 +84,36 @@
             <!-- Modals -->
             <dialog id="assets_modal" class="modal">
               <div class="modal-box">
-                <h3 class="font-bold text-lg flex items-center">
+                <h3 class="font-bold text-lg flex items-center mb-4">
                   <i class="fas fa-gem text-sky-600 mr-2"></i>
                   Assets Details
                 </h3>
-                <p class="py-4">
-                  Value: $<%= number_with_precision(@assets, precision: 2) %>
-                </p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Total Assets</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@assets, precision: 2) %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Cash on Hand</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@cash_on_hand, precision: 2) %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Net Worth</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@net_worth, precision: 2) %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Total Payments</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@payments, precision: 2) %>
+                    </p>
+                  </div>
+                </div>
                 <div class="modal-action">
                   <form method="dialog">
                     <button class="btn">Close</button>
@@ -104,13 +127,36 @@
 
             <dialog id="income_modal" class="modal">
               <div class="modal-box">
-                <h3 class="font-bold text-lg flex items-center">
+                <h3 class="font-bold text-lg flex items-center mb-4">
                   <i class="fas fa-money-bill-wave text-emerald-500 mr-2"></i>
                   Income Details
                 </h3>
-                <p class="py-4">
-                  Value: $<%= number_with_precision(@income_transactions, precision: 2) %>
-                </p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Total Income</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@income_transactions, precision: 2) %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Average Transaction</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@average_transaction, precision: 2) %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Total Transactions</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      <%= @total_transactions %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Countries</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      <%= @countries_spent %>
+                    </p>
+                  </div>
+                </div>
                 <div class="modal-action">
                   <form method="dialog">
                     <button class="btn">Close</button>
@@ -124,13 +170,36 @@
 
             <dialog id="spent_modal" class="modal">
               <div class="modal-box">
-                <h3 class="font-bold text-lg flex items-center">
+                <h3 class="font-bold text-lg flex items-center mb-4">
                   <i class="fas fa-shopping-cart text-orange-500 mr-2"></i>
-                  Total Spent Details
+                  Spending Details
                 </h3>
-                <p class="py-4">
-                  Value: $<%= number_with_precision(@total_spent, precision: 2) %>
-                </p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Total Spent</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      $<%= number_with_precision(@total_spent, precision: 2) %>
+                    </p>
+                  </div>
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-sm font-medium text-gray-500">Top Category</h4>
+                    <p class="text-xl font-bold text-[#19272f]">
+                      <%= @top_category %>
+                    </p>
+                  </div>
+                  <!-- Categories Grid -->
+                  <div class="col-span-2">
+                    <h4 class="text-sm font-medium text-gray-500 mb-2">Spending by Category</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                      <% @chart_data.select { |_, amount| amount > 0 }.each do |category, amount| %>
+                        <div class="bg-white p-3 rounded border border-gray-200">
+                          <div class="text-sm text-gray-600"><%= category %></div>
+                          <div class="font-semibold">$<%= number_with_precision(amount, precision: 2) %></div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
                 <div class="modal-action">
                   <form method="dialog">
                     <button class="btn">Close</button>

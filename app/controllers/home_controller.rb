@@ -5,23 +5,61 @@ class HomeController < ApplicationController
   def index
     if user_signed_in?
       base_transactions = Current.user.transactions
+
+      # Apply search if query present
+      base_transactions = if params[:query].present?
+        base_transactions.search(params[:query])
+      else
+        base_transactions
+      end
+
       @analysis_sessions = Current.user.analysis_sessions.order(created_at: :desc)
 
-      # Calculate stats from all transactions
+      # Calculate stats from filtered transactions
       @total_transactions = base_transactions.count
-      @total_spent = base_transactions.where("amount > 0").sum(:amount)
-      @average_transaction = base_transactions.where("amount > 0").average(:amount)
+      @total_spent = if params[:query].present?
+        base_transactions.where("amount > 0").reorder("").sum(:amount)
+      else
+        base_transactions.where("amount > 0").sum(:amount)
+      end
+      @average_transaction = if params[:query].present?
+        base_transactions.where("amount > 0").reorder("").average(:amount)
+      else
+        base_transactions.where("amount > 0").average(:amount)
+      end
       @upload_count = Current.user.analysis_sessions.count + Current.user.plaid_items.count
-      @payments = base_transactions.where("amount < 0").sum(:amount).abs
-      @income_transactions = -base_transactions.where("amount < 0").where.not(category: "Payment").sum(:amount)
-      @expense_transactions = base_transactions.where("amount > 0").sum(:amount)
+      @payments = if params[:query].present?
+        base_transactions.where("amount < 0").reorder("").sum(:amount).abs
+      else
+        base_transactions.where("amount < 0").sum(:amount).abs
+      end
+      @income_transactions = if params[:query].present?
+        -base_transactions.where("amount < 0").where.not(category: "Payment").reorder("").sum(:amount)
+      else
+        -base_transactions.where("amount < 0").where.not(category: "Payment").sum(:amount)
+      end
+      @expense_transactions = if params[:query].present?
+        base_transactions.where("amount > 0").reorder("").sum(:amount)
+      else
+        base_transactions.where("amount > 0").sum(:amount)
+      end
       @net_worth = (@income_transactions - @expense_transactions)
-      @top_category = base_transactions
-        .where("amount > 0")
-        .group(:category)
-        .sum(:amount)
-        .max_by { |_, amount| amount }
-        &.first
+      @top_category = if params[:query].present?
+        base_transactions
+          .where("amount > 0")
+          .reorder("")
+          .group(:category)
+          .sum(:amount)
+          .max_by { |_, amount| amount }
+          &.first
+      else
+        base_transactions
+          .where("amount > 0")
+          .group(:category)
+          .sum(:amount)
+          .max_by { |_, amount| amount }
+          &.first
+      end
       @cash_on_hand = base_transactions
         .where(category: "Cash on Hand")
         .sum(:amount)
@@ -38,11 +76,38 @@ class HomeController < ApplicationController
       sorted_transactions = sort_transactions(base_transactions)
       @pagy, @transactions = pagy(sorted_transactions)
 
+      # Handle Turbo Frame requests
+      respond_to do |format|
+        format.html
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "transactions-table",
+            partial: "shared/transactions_table"
+          )
+        end
+      end
+
       # For charts
-      @chart_data = base_transactions.group(:category).sum(:amount)
+      @chart_data = if params[:query].present?
+        base_transactions.reorder("").group(:category).sum(:amount)
+      else
+        base_transactions.group(:category).sum(:amount)
+      end
 
       # Add this for the chart
-      @time_series_data = prepare_time_series_data
+      @time_series_data = prepare_time_series_data(base_transactions)
+
+      # Additional calculations for modals
+      @foreign_transactions = base_transactions
+        .where("amount > 0")
+        .where.not(country: nil)
+        .sum(:amount)
+
+      @recent_deposits = base_transactions
+        .where("amount < 0")
+        .where("transaction_date >= ?", 30.days.ago)
+        .sum(:amount)
+        .abs
 
     else
       redirect_to landing_path
@@ -64,17 +129,32 @@ class HomeController < ApplicationController
 
   private
 
-  def prepare_time_series_data
-    monthly_data = Current.user.transactions.group_by_month(:transaction_date).group(:category).sum(:amount)
-    dates = monthly_data.keys.map(&:first).uniq
+  def prepare_time_series_data(transactions = nil)
+    transactions ||= Current.user.transactions
+    weekly_data = if params[:query].present?
+      transactions.reorder("").group_by_week(:transaction_date).group(:category).sum(:amount)
+    else
+      transactions.group_by_week(:transaction_date).group(:category).sum(:amount)
+    end
+
+    dates = weekly_data.keys.map(&:first).uniq
 
     {
-      dates: dates.map { |d| d.strftime("%B %Y") },
+      dates: dates.map { |d| d.strftime("%Y-%m-%d") },
       spent: dates.map { |date|
-        monthly_data.select { |k, _| k[0] == date && k[1] != "Assets" }.values.sum
+        weekly_data.select { |k, _|
+          k[0] == date &&
+          weekly_data[[ k[0], k[1] ]] > 0
+        }.values.sum
       },
       assets: dates.map { |date|
-        monthly_data.select { |k, _| k[0] == date && k[1] == "Assets" }.values.sum.abs
+        weekly_data.select { |k, _| k[0] == date && k[1] == "Assets" }.values.sum.abs
+      },
+      income: dates.map { |date|
+        weekly_data.select { |k, _|
+          k[0] == date &&
+          weekly_data[[ k[0], k[1] ]] < 0
+        }.values.sum.abs
       }
     }
   end

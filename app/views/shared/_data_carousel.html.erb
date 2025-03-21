@@ -89,20 +89,153 @@
         <% end %>
       </div>
 
-      <!-- Modal for this card -->
+      <!-- Modal for each card -->
       <dialog id="my_modal_<%= index %>" class="modal">
         <div class="modal-box">
-          <h3 class="font-bold text-lg flex items-center">
-            <i class="fas fa-<%= card[:icon] %> text-<%= card[:icon_color] %>-500 text-red-500 mr-2"></i>
+          <h3 class="font-bold text-lg flex items-center mb-4">
+            <i class="fas fa-<%= card[:icon] %> <%= card[:icon_color] %> mr-2"></i>
             <%= card[:title] %> Details
           </h3>
-          <p class="py-4">
-            Value: <%= card[:prefix] %><%= card[:value] %>
-            <% if card[:subtitle] %>
-              <br>
-              <%= card[:subtitle] %>
+
+          <%# Different content based on card type %>
+          <% case card[:title] %>
+          <% when 'Net Worth' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Total Income</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@income_transactions, precision: 2) %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Total Expenses</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@expense_transactions, precision: 2) %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg col-span-2">
+                <h4 class="text-sm font-medium text-gray-500">Net Worth</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@net_worth, precision: 2) %>
+                </p>
+              </div>
+            </div>
+
+          <% when 'Cash On Hand' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Available Cash</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@cash_on_hand, precision: 2) %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Assets</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@assets, precision: 2) %>
+                </p>
+              </div>
+            </div>
+
+          <% when 'Number of Transactions' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Total Transactions</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  <%= @total_transactions %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Average Amount</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@average_transaction, precision: 2) %>
+                </p>
+              </div>
+            </div>
+
+          <% when 'Payments' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Number of Payments</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  <%= Current.user.transactions.where("amount < 0").count %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Total Amount</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(Current.user.transactions.where('amount < 0').sum(:amount).abs, precision: 2) %>
+                </p>
+              </div>
+            </div>
+
+          <% when 'Top Category' %>
+            <div class="space-y-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Most Used Category</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  <%= @top_category %>
+                </p>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <% @chart_data.select { |_, amount| amount > 0 }.each do |category, amount| %>
+                  <div class="bg-white p-3 rounded border border-gray-200">
+                    <div class="text-sm text-gray-600"><%= category %></div>
+                    <div class="font-semibold">$<%= number_with_precision(amount, precision: 2) %></div>
+                  </div>
             <% end %>
-          </p>
+              </div>
+            </div>
+
+          <% when 'Average Transaction' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Average Amount</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@average_transaction, precision: 2) %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Total Volume</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@total_spent, precision: 2) %>
+                </p>
+              </div>
+            </div>
+
+          <% when 'Countries Spent' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Unique Countries</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  <%= @countries_spent %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Total Foreign Spend</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  $<%= number_with_precision(@total_spent, precision: 2) %>
+                </p>
+              </div>
+            </div>
+
+          <% when 'Uploads' %>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">CSV Uploads</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  <%= Current.user.analysis_sessions.count %>
+                </p>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-500">Plaid Connections</h4>
+                <p class="text-xl font-bold text-[#19272f]">
+                  <%= Current.user.plaid_items.count %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+
           <div class="modal-action">
             <form method="dialog">
               <button class="btn">Close</button>

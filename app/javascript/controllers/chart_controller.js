@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["barChart", "doughnutChart", "lineChart", "barGroupBy", "barAggregate", "doughnutGroupBy", "doughnutTotal"]
   static values = {
-    timeSeries: { type: Object, default: { dates: [], spent: [], assets: [] } }
+    timeSeries: { type: Object, default: { dates: [], spent: [], assets: [], income: [], net_worth: [], cash_on_hand: [], payments: [] } }
   }
 
   connect() {
@@ -173,11 +173,12 @@ export default class extends Controller {
     if (!this.hasLineChartTarget) return
 
     try {
+      console.log("Line chart data:", data);
       if (this.lineChart) {
         this.lineChart.destroy()
       }
 
-      // Format dates to "Sep. 14 '25" style
+      // Format date
       const formattedDates = data.dates.map(date => {
         const d = new Date(date)
         return d.toLocaleDateString('en-US', {
@@ -186,6 +187,10 @@ export default class extends Controller {
           year: '2-digit'
         })
       })
+
+      console.log("Formatted dates:", formattedDates);
+      console.log("Income data:", Object.values(data.income));
+      console.log("Spent data:", Object.values(data.spent));
 
       const ctx = this.lineChartTarget.getContext('2d')
       this.lineChart = new Chart(ctx, {
@@ -202,8 +207,8 @@ export default class extends Controller {
             fill: true
           },
           {
-            label: 'Assets',
-            data: Object.values(data.assets),
+            label: 'Income',
+            data: Object.values(data.income),
             borderColor: '#EAB308',
             backgroundColor: 'rgba(79, 70, 229, 0.2)',
             borderWidth: 2,
@@ -215,6 +220,7 @@ export default class extends Controller {
       })
     } catch (error) {
       console.error('Error updating line chart:', error)
+      console.error('Data received:', data)
     }
   }
 
