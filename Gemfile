@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gem 'devise'
 gem 'plaid'
-gem 'pagy', '~> 6.0'
+gem 'pagy', '~> 9.3'
 gem 'groupdate'
 gem 'pg_search'
 
