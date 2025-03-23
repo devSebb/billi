@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   get "landing", to: "home#landing", as: :landing
 
   # Transactions routes
-  resources :transactions, only: [ :create ] do
+  resources :transactions do
     collection do
       post "upload_csv"
       post "process_mapped_csv"

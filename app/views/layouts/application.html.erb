@@ -30,6 +30,8 @@
     </style>
     <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.css">
   </head>
 
   <body class="<%= current_page?(root_path) && !user_signed_in? ? '' : ' bg-slate-100' %> flex flex-col min-h-screen">
@@ -37,5 +39,6 @@
       <%= yield %>
     </main>
       <%= render "shared/footer" %>
+    <div id="edit-transaction-modal"></div>
   </body>
 </html>

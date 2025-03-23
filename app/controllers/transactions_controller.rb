@@ -54,7 +54,7 @@ class TransactionsController < ApplicationController
               raw_amount = row_hash[mapping[:amount]]
               Rails.logger.info "Row #{index + 1}: Raw amount: '#{raw_amount}'"
 
-              # Get other fields
+
               date = clean_date(row_hash[mapping[:transaction_date]])
               original_category = clean_string(row_hash[mapping[:category]], default: "Other")
               merchant = clean_string(row_hash[mapping[:merchant]], default: "Unknown")
@@ -121,7 +121,6 @@ class TransactionsController < ApplicationController
       begin
         temp_data = current_user.temp_csv_data.find(session[:temp_csv_id])
 
-        # Clear existing transactions
         current_user.transactions.destroy_all
 
         transaction_count = 0
@@ -167,7 +166,6 @@ class TransactionsController < ApplicationController
   end
 
   # GET /transactions
-  # Displays the analysis of transactions in a table and via Chart.js
   def index
     @transactions = Current.user.transactions.includes(:analysis_session, :plaid_item)
     filtered_transactions = filter_transactions(@transactions)
@@ -281,7 +279,6 @@ class TransactionsController < ApplicationController
     }
   end
 
-  # Add new action to delete analysis sessions
   def destroy_analysis_session
     @analysis_session = current_user.analysis_sessions.find(params[:id])
     @analysis_session.destroy
@@ -309,6 +306,51 @@ class TransactionsController < ApplicationController
       spent: spent_by_month,
       assets: assets_by_month
     }
+  end
+
+  def edit
+    @transaction = Transaction.find(params[:id])
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "edit-transaction-modal-1",
+          partial: "shared/edit_transaction_modal",
+          locals: { transaction: @transaction }
+        )
+      end
+    end
+  end
+
+  def update
+    @transaction = Current.user.transactions.find(params[:id])
+
+    if @transaction.update(transaction_params)
+      # Fetch the updated list of transactions (adjust query as needed)
+      @transactions = Current.user.transactions.order(transaction_date: :desc)
+      # Add pagination if you're using the Pagy gem
+      @pagy, @transactions = pagy(@transactions) if defined?(pagy)
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: [
+            # Update the transactions-table Turbo Frame with the updated data
+            turbo_stream.replace("transactions-table",
+              partial: "shared/transactions_table",
+              locals: { transactions: @transactions, pagy: @pagy }),
+            turbo_stream.append("body", "<script>document.getElementById('edit-transaction-modal-1').close()</script>")
+          ]
+        end
+      end
+    else
+      # If update fails, re-render the modal with errors
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update("edit-transaction-modal",
+            partial: "shared/edit_transaction_modal",
+            locals: { transaction: @transaction })
+        end
+      end
+    end
   end
 
   private

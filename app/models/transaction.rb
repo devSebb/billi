@@ -24,7 +24,6 @@ class Transaction < ApplicationRecord
     }
   }
 
-  # Add a scope for searching with aggregations
   scope :search_with_aggregates, ->(query) {
     if query.present?
       base = search(query)

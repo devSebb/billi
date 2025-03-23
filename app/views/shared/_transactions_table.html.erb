@@ -1,143 +1,165 @@
-<!-- Transactions Section -->
-<div class="bg-white rounded-xl shadow-md py-6 px-7 border border-gray-100 mb-8" data-controller="dropdown">
-  <% if @transactions.present? %>
-    <!-- Collapsible Header -->
-    <div class="flex justify-between items-center cursor-pointer"
-         data-action="click->dropdown#toggle">
-      <div class="flex items-center gap-2">
-        <i class="fas fa-list text-[#ffd500]"></i>
-        <h2 class="text-xl font-semibold text-[#19272f]">Transaction History</h2>
-      </div>
-      <div class="flex items-center gap-4">
-        <%= button_to reset_transactions_path,
-            method: :delete,
-            class: "bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2",
-            data: {
-              turbo_confirm: "Are you sure? This cannot be undone.",
-              turbo: false
-            } do %>
-          <i class="fas fa-trash-alt"></i> Reset All
-        <% end %>
-        <i class="fas fa-chevron-down text-black transition-transform duration-300" data-dropdown-target="arrow"></i>
-      </div>
-    </div>
-
-    <!-- Collapsible Content -->
-    <div class="overflow-hidden transition-all duration-300" data-dropdown-target="content">
-      <% if @transactions.any? %>
-        <p class="text-sm text-gray-700 italic mt-4 mb-6">
-          <% min_date = @transactions.map(&:transaction_date).min %>
-          <% max_date = @transactions.map(&:transaction_date).max %>
-          Data from <%= min_date&.strftime("%B %d, %Y") %> to
-          <%= max_date&.strftime("%B %d, %Y") %>
-        </p>
-      <% end %>
-
-      <div class="mb-4 flex justify-between items-center">
-        <!-- Search Box -->
-        <div class="relative" data-controller="search">
-          <input type="text"
-                 placeholder="Search transactions..."
-                 value="<%= params[:query] %>"
-                 class="form-input pl-10 pr-12 py-2 rounded-lg text-sm text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
-                 data-action="input->search#perform"
-                 data-search-target="input"
-                 data-turbo-frame="transactions-table">
-          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-          <% if params[:query].present? %>
-            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    data-action="click->search#clear">
-              <i class="fas fa-times"></i>
-            </button>
-          <% end %>
-        </div>
-
-        <!-- Sort Dropdown -->
+<div data-controller="transaction">
+  <!-- Transactions Section -->
+  <div class="bg-white rounded-xl shadow-md py-6 px-7 border border-gray-100 mb-8" data-controller="dropdown">
+    <% if @transactions.present? %>
+      <!-- Collapsible Header -->
+      <div class="flex justify-between items-center cursor-pointer"
+           data-action="click->dropdown#toggle">
         <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600">Sort by:</label>
-          <select class="form-select rounded-lg text-sm text-gray-700"
-                  data-controller="sort"
-                  data-action="change->sort#applySort">
-            <option value="transaction_date" <%= params[:sort] == 'transaction_date' || params[:sort].blank? ? 'selected' : '' %>>Date</option>
-            <option value="amount" <%= params[:sort] == 'amount' ? 'selected' : '' %>>Amount</option>
-            <option value="category" <%= params[:sort] == 'category' ? 'selected' : '' %>>Category</option>
-            <option value="merchant" <%= params[:sort] == 'merchant' ? 'selected' : '' %>>Merchant</option>
-            <option value="country" <%= params[:sort] == 'country' ? 'selected' : '' %>>Country</option>
-            <option value="currency" <%= params[:sort] == 'currency' ? 'selected' : '' %>>Currency</option>
-          </select>
+          <i class="fas fa-list text-[#ffd500]"></i>
+          <h2 class="text-xl font-semibold text-[#19272f]">Transaction History</h2>
+        </div>
+        <div class="flex items-center gap-4">
+          <%= button_to reset_transactions_path,
+              method: :delete,
+              class: "bg-red-500 hover:bg-red-600 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2",
+              data: {
+                turbo_confirm: "Are you sure? This cannot be undone.",
+                turbo: false
+              } do %>
+            <i class="fas fa-trash-alt"></i> Reset All
+          <% end %>
+          <i class="fas fa-chevron-down text-black transition-transform duration-300" data-dropdown-target="arrow"></i>
         </div>
       </div>
 
-      <%= turbo_frame_tag "transactions-table" do %>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200" data-controller="sort">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                <% [
-                  ['Date', 'transaction_date'],
-                  ['Country', 'country'],
-                  ['Merchant', 'merchant'],
-                  ['Category', 'category'],
-                  ['Amount', 'amount'],
-                  ['Currency', 'currency']
-                ].each do |label, column| %>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
-                      data-action="click->sort#sort"
-                      data-sort-column="<%= column %>">
-                    <div class="flex items-center gap-1">
-                      <%= label %>
-                      <div class="flex flex-col text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <i class="fas fa-chevron-up -mb-1"></i>
-                        <i class="fas fa-chevron-down"></i>
-                      </div>
-                    </div>
-                  </th>
-                <% end %>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <% @transactions.each_with_index do |tx, index| %>
-                <tr class="hover:bg-gray-50">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <%= (@pagy&.offset || 0) + index + 1 %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <%= tx.transaction_date.strftime("%B #{tx.transaction_date.day.ordinalize}, %Y") %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.country %></td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <%= highlight_search_term(tx.merchant, params[:query]) %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <%= highlight_search_term(tx.category, params[:query]) %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <%= number_to_currency(tx.amount, precision: 2) %>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.currency %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
+      <!-- Collapsible Content -->
+      <div class="overflow-hidden transition-all duration-300" data-dropdown-target="content">
+        <% if @transactions.any? %>
+          <p class="text-sm text-gray-700 italic mt-4 mb-6">
+            <% min_date = @transactions.map(&:transaction_date).min %>
+            <% max_date = @transactions.map(&:transaction_date).max %>
+            Data from <%= min_date&.strftime("%B %d, %Y") %> to
+            <%= max_date&.strftime("%B %d, %Y") %>
+          </p>
+        <% end %>
 
-          <!-- Pagination Links -->
-          <div class="mt-6">
-            <% if @pagy %>
-              <div class="flex items-center justify-center gap-2 text-gray-600">
-                <%== pagy_nav(@pagy) %>
-              </div>
+        <div class="mb-4 flex justify-between items-center">
+          <!-- Search Box -->
+          <div class="relative" data-controller="search">
+            <input type="text"
+                   placeholder="Search transactions..."
+                   value="<%= params[:query] %>"
+                   class="form-input pl-10 pr-12 py-2 rounded-lg text-sm text-gray-700 border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-64"
+                   data-action="input->search#perform"
+                   data-search-target="input"
+                   data-turbo-frame="transactions-table">
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <% if params[:query].present? %>
+              <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      data-action="click->search#clear">
+                <i class="fas fa-times"></i>
+              </button>
             <% end %>
           </div>
+
+          <!-- Sort Dropdown -->
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-gray-600">Sort by:</label>
+            <select class="form-select rounded-lg text-sm text-gray-700"
+                    data-controller="sort"
+                    data-action="change->sort#applySort">
+              <option value="transaction_date" <%= params[:sort] == 'transaction_date' || params[:sort].blank? ? 'selected' : '' %>>Date</option>
+              <option value="amount" <%= params[:sort] == 'amount' ? 'selected' : '' %>>Amount</option>
+              <option value="category" <%= params[:sort] == 'category' ? 'selected' : '' %>>Category</option>
+              <option value="merchant" <%= params[:sort] == 'merchant' ? 'selected' : '' %>>Merchant</option>
+              <option value="country" <%= params[:sort] == 'country' ? 'selected' : '' %>>Country</option>
+              <option value="currency" <%= params[:sort] == 'currency' ? 'selected' : '' %>>Currency</option>
+            </select>
+          </div>
         </div>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="text-center py-12">
-      <div class="text-gray-400 mb-4">
-        <i class="fas fa-receipt text-6xl"></i>
+
+        <%= turbo_frame_tag "transactions-table" do %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" data-controller="sort">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                  <% [
+                    ['Date', 'transaction_date'],
+                    ['Country', 'country'],
+                    ['Merchant', 'merchant'],
+                    ['Category', 'category'],
+                    ['Amount', 'amount'],
+                    ['Currency', 'currency']
+                  ].each do |label, column| %>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
+                        data-action="click->sort#sort"
+                        data-sort-column="<%= column %>">
+                      <div class="flex items-center gap-1">
+                        <%= label %>
+                        <div class="flex flex-col text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <i class="fas fa-chevron-up -mb-1"></i>
+                          <i class="fas fa-chevron-down"></i>
+                        </div>
+                      </div>
+                    </th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% @transactions.each_with_index do |tx, index| %>
+                  <tr class="hover:bg-gray-50">
+                    <td class=" py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div class="flex items-center gap-2">
+                        <button class="group p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                                data-action="click->transaction#edit"
+                                data-transaction-id="<%= tx.id %>">
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                               class="h-4 w-4 text-gray-200 group-hover:text-yellow-500 transition-colors duration-200"
+                               fill="none"
+                               viewBox="0 0 24 24"
+                               stroke="currentColor">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+
+                        </button>
+                        <%= (@pagy&.offset || 0) + index + 1 %>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= tx.transaction_date.strftime("%B #{tx.transaction_date.day.ordinalize}, %Y") %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.country %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= highlight_search_term(tx.merchant, params[:query]) %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= highlight_search_term(tx.category, params[:query]) %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <%= number_to_currency(tx.amount, precision: 2) %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.currency %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+
+            <!-- Pagination Links -->
+            <div class="mt-6">
+              <% if @pagy %>
+                <div class="flex items-center justify-center gap-2 text-gray-600">
+                  <%== pagy_nav(@pagy) %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       </div>
-      <p class="text-gray-500">No transactions yet. Upload a CSV file or load test data to get started.</p>
-    </div>
-  <% end %>
+    <% else %>
+      <div class="text-center py-12">
+        <div class="text-gray-400 mb-4">
+          <i class="fas fa-receipt text-6xl"></i>
+        </div>
+        <p class="text-gray-500">No transactions yet. Upload a CSV file or load test data to get started.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Add this at the bottom of your transactions table div -->
+  <%= render 'shared/edit_transaction_modal', transaction: Transaction.new %>
 </div>

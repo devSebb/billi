@@ -1,0 +1,69 @@
+<dialog id="edit-transaction-modal-1" class="modal">
+  <div class="modal-box">
+    <h3>
+      <i class="fas fa-edit text-yellow-500 mr-2"></i>
+      Edit Transaction
+    </h3>
+
+    <%= form_with(model: transaction, data: { turbo: true, action: "turbo:submit-end->transaction#closeModal" }) do |f| %>
+      <div class="grid grid-cols-2 gap-4 pt-2">
+        <!-- Amount Field -->
+        <div class="form-control">
+          <%= f.label :amount, class: "label" %>
+          <%= f.number_field :amount, step: "0.01", class: "input input-bordered w-full" %>
+        </div>
+
+        <!-- Currency Field -->
+        <div class="form-control">
+          <%= f.label :currency, class: "label" %>
+          <%= f.select :currency,
+              options_for_select(['USD', 'EUR', 'GBP'], transaction.currency),
+              {},
+              class: "select select-bordered w-full" %>
+        </div>
+
+        <!-- Date Field -->
+        <div class="form-control">
+          <%= f.label :transaction_date, class: "label" %>
+          <%= f.date_field :transaction_date, class: "input input-bordered w-full" %>
+        </div>
+
+        <!-- Country Field -->
+        <div class="form-control">
+          <%= f.label :country, class: "label" %>
+          <%= f.text_field :country, class: "input input-bordered w-full" %>
+        </div>
+
+        <!-- Merchant Field -->
+        <div class="form-control">
+          <%= f.label :merchant, class: "label" %>
+          <%= f.text_field :merchant, class: "input input-bordered w-full" %>
+        </div>
+
+        <!-- Category Field -->
+        <div class="form-control">
+          <%= f.label :category, class: "label" %>
+          <%= f.text_field :category, class: "input input-bordered w-full" %>
+        </div>
+      </div>
+
+      <% if transaction.errors.any? %>
+        <div class="alert alert-error mt-4">
+          <ul class="list-disc list-inside">
+            <% transaction.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="modal-action">
+        <%= f.submit "Update Transaction", class: "btn btn-primary" %>
+        <button type="button" class="btn" data-action="click->transaction#closeModal">Cancel</button>
+      </div>
+    <% end %>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
