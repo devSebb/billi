@@ -74,16 +74,16 @@
             <table class="min-w-full divide-y divide-gray-200" data-controller="sort">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                  <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
                   <% [
-                    ['Date', 'transaction_date'],
-                    ['Country', 'country'],
-                    ['Merchant', 'merchant'],
-                    ['Category', 'category'],
-                    ['Amount', 'amount'],
-                    ['Currency', 'currency']
-                  ].each do |label, column| %>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
+                    ['Date', 'transaction_date', 'w-40'],
+                    ['Country', 'country', 'w-32'],
+                    ['Merchant', 'merchant', 'w-48'],
+                    ['Category', 'category', 'w-40'],
+                    ['Amount', 'amount', 'w-32'],
+                    ['Currency', 'currency', 'w-24']
+                  ].each do |label, column, width| %>
+                    <th class="<%= width %> px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer group"
                         data-action="click->sort#sort"
                         data-sort-column="<%= column %>">
                       <div class="flex items-center gap-1">
@@ -100,7 +100,7 @@
               <tbody class="bg-white divide-y divide-gray-200">
                 <% @transactions.each_with_index do |tx, index| %>
                   <tr class="hover:bg-gray-50">
-                    <td class=" py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="w-20 py-4 text-sm text-gray-500">
                       <div class="flex items-center gap-2">
                         <button class="group p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                                 data-action="click->transaction#edit"
@@ -115,25 +115,40 @@
                                   stroke-width="2"
                                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
-
                         </button>
                         <%= (@pagy&.offset || 0) + index + 1 %>
                       </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= tx.transaction_date.strftime("%B #{tx.transaction_date.day.ordinalize}, %Y") %>
+                    <td class="w-40 px-6 py-4 text-sm text-gray-900">
+                      <div class="overflow-x-auto">
+                        <%= tx.transaction_date.strftime("%B #{tx.transaction_date.day.ordinalize}, %Y") %>
+                      </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.country %></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= highlight_search_term(tx.merchant, params[:query]) %>
+                    <td class="w-32 px-6 py-4 text-sm text-gray-900">
+                      <div class="overflow-x-auto">
+                        <%= tx.country %>
+                      </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= highlight_search_term(tx.category, params[:query]) %>
+                    <td class="w-48 px-6 py-4 text-sm text-gray-900">
+                      <div class="overflow-x-auto">
+                        <%= highlight_search_term(tx.merchant, params[:query]) %>
+                      </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <%= number_to_currency(tx.amount, precision: 2) %>
+                    <td class="w-40 px-6 py-4 text-sm text-gray-900">
+                      <div class="overflow-x-auto">
+                        <%= highlight_search_term(tx.category, params[:query]) %>
+                      </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= tx.currency %></td>
+                    <td class="w-32 px-6 py-4 text-sm text-gray-900">
+                      <div class="overflow-x-auto">
+                        <%= number_to_currency(tx.amount, precision: 2) %>
+                      </div>
+                    </td>
+                    <td class="w-24 px-6 py-4 text-sm text-gray-900">
+                      <div class="overflow-x-auto">
+                        <%= tx.currency %>
+                      </div>
+                    </td>
                   </tr>
                 <% end %>
               </tbody>

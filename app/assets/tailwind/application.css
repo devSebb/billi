@@ -10,8 +10,6 @@
 }
 
 
-
-/* Typography */
 @layer base {
   html, body {
     font-family: 'Helvetica', sans-serif;
@@ -19,28 +17,85 @@
 }
 
 @layer components {
+  @apply relative overflow-hidden bg-gradient-to-r from-[#19272f] via-[#f1f42f] to-[#f96615] text-white;
+
   .logo-font {
     font-family: 'Helvetica', sans-serif;
   }
 
-  /* Button Styles */
+  .btn {
+    @apply inline-flex items-center justify-center
+           px-4 py-2.5 rounded-lg
+           text-sm font-medium
+           transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           border border-transparent;
+  }
+
   .btn-primary {
-    @apply bg-[#19272f] hover:bg-gray-700 text-white;
+    @apply inline-flex items-center justify-center
+           px-4 py-2.5 rounded-lg
+           text-sm font-medium
+           transition-all duration-200
+           bg-[#19272f] text-white
+           hover:bg-gray-700
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-secondary {
-    @apply bg-[#ffd500] hover:bg-[#e6c000] text-[#19272f];
+    @apply inline-flex items-center justify-center
+           px-4 py-2.5 rounded-lg
+           text-sm font-medium
+           transition-all duration-200
+           bg-[#ffd500] text-[#19272f]
+           hover:bg-[#e6c000]
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-outline {
-    @apply bg-white hover:bg-gray-50 text-[#19272f] border border-[#19272f];
+    @apply inline-flex items-center justify-center
+           px-4 py-2.5 rounded-lg
+           text-sm font-medium
+           transition-all duration-200
+           bg-transparent border border-current
+           text-[#19272f] hover:bg-gray-50
+           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  .btn-base {
-    @apply text-sm font-medium py-2.5 px-4 rounded-lg transition-colors duration-200;
+  .btn-gradient {
+    @apply inline-flex items-center justify-center
+           px-4 py-2.5 rounded-lg
+           text-sm font-medium
+           transition-all duration-300
+           relative overflow-hidden
+           bg-[#19272f]
+           text-white
+           shadow-[0_0_15px_rgba(241,244,47,0.3)]
+           hover:scale-[1.02] hover:-translate-y-1 hover:rotate-1
+           hover:shadow-[0_0_25px_rgba(29,102,21,0.5)]
+           active:scale-95
+           focus:outline-none focus:ring-2 focus:ring-[#f1f42f] focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
-  /* File Input Customization */
+  .btn-sm {
+    @apply px-3 py-2 text-xs;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  .btn-icon {
+    @apply p-2 rounded-full;
+    @apply hover:bg-gray-100;
+    @apply dark:hover:bg-gray-800;
+  }
+
   .file-input-custom {
     @apply block w-full text-sm text-gray-500;
   }
@@ -49,7 +104,6 @@
     @apply mr-4 py-2 px-4 rounded-lg border-0 text-sm font-medium bg-[#19272f] text-white hover:bg-gray-700 transition-colors duration-200;
   }
 
-  /* Card Styles */
   .card-base {
     @apply bg-white rounded-xl shadow-lg border border-gray-100;
   }
@@ -58,12 +112,10 @@
     @apply text-xl font-semibold text-[#19272f] mb-6 flex items-center gap-2;
   }
 
-  /* Dropdown Customization */
   .dropdown-custom {
     @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100 w-96;
   }
 
-  /* Form Elements */
   .form-input-base {
     @apply block w-full text-sm text-gray-500 rounded-lg border-gray-200 focus:ring-2 focus:ring-[#ffd500] focus:border-[#ffd500];
   }
@@ -72,7 +124,6 @@
     @apply block text-sm font-medium text-gray-700 mb-1;
   }
 
-  /* Utility Classes */
   .flex-center {
     @apply flex items-center justify-center;
   }
@@ -88,82 +139,50 @@
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ffd500];
   }
+
+  .modal-box {
+    @apply relative bg-white dark:bg-gray-800;
+    @apply rounded-2xl;
+    @apply flex flex-col items-start;
+    @apply border-none;
+    @apply shadow-2xl;
+    @apply max-w-3xl w-[95%];
+    @apply p-6 lg:p-8;
+    @apply transform scale-95 opacity-0;
+    @apply transition-all duration-300;
+    animation: modal-appear 0.3s ease-out forwards;
+  }
+
+  .modal-box h3 {
+    @apply text-[#19272f] dark:text-white;
+    @apply text-2xl font-bold;
+    @apply border-b border-gray-200 dark:border-gray-700;
+    @apply pb-4 mb-6;
+    @apply w-full;
+  }
+
+  .modal-box .modal-action {
+    @apply flex justify-end gap-3;
+    @apply mt-8 pt-4;
+    @apply border-t border-gray-100 dark:border-gray-700;
+    @apply w-full;
+  }
+
+  .modal::backdrop {
+    @apply bg-gray-900/40 backdrop-blur-sm;
+    animation: backdrop-appear 0.3s ease-out forwards;
+  }
 }
 
 @layer utilities {
-  /* Custom Animations */
-  @keyframes blob {
-    0% {
-      transform: translate(0px, 0px) scale(1);
-    }
-    33% {
-      transform: translate(30px, -50px) scale(1.1);
-    }
-    66% {
-      transform: translate(-20px, 20px) scale(0.9);
-    }
-    100% {
-      transform: translate(0px, 0px) scale(1);
-    }
-  }
-
-  .animate-blob {
-    animation: blob 7s infinite;
-  }
-
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-
-  /* Particle animations */
-  @keyframes float-1 {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    50% { transform: translate(20px, -20px) rotate(180deg); }
-  }
-
-  @keyframes float-2 {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-    50% { transform: translate(-20px, 20px) rotate(-180deg); }
-  }
-
-  @keyframes float-3 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(10px, -30px) scale(1.2); }
-  }
-
-  .particle-1 {
-    @apply absolute w-8 h-8 bg-yellow-500/30 rounded-full blur-md;
-    top: 20%;
-    left: 20%;
-    animation: float-1 7s infinite ease-in-out;
-  }
-
-  .particle-2 {
-    @apply absolute w-6 h-6 bg-purple-500/30 rounded-full blur-md;
-    top: 60%;
-    right: 20%;
-    animation: float-2 8s infinite ease-in-out;
-  }
-
-  .particle-3 {
-    @apply absolute w-10 h-10 bg-blue-500/30 rounded-full blur-md;
-    bottom: 20%;
-    left: 40%;
-    animation: float-3 6s infinite ease-in-out;
-  }
-
   .modal-box {
     @apply relative bg-white rounded-2xl flex flex-col items-start;
     border: none;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    max-width: 42rem;
+    max-width: 52rem;
     width: 95%;
     padding: 2rem;
-    padding-inline: 5rem;
+    padding-inline: 4rem;
     transition: all 0.3s ease-out;
     transform: scale(0.95);
     opacity: 0;
@@ -171,7 +190,7 @@
   }
 
   .modal-box h3 {
-    @apply text-[#19272f] text-2xl border-b border-gray-100 pb-4;
+    @apply text-[#19272f] text-2xl border-b border-gray-200 pb-4 mb-4;
   }
 
   .modal-box .form-control {
@@ -188,17 +207,6 @@
     @apply focus:ring-2 focus:ring-[#ffd500] focus:border-transparent focus:bg-white transition-all duration-200;
   }
 
-  .modal-box .modal-action {
-    @apply flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100;
-  }
-
-  .modal-box .btn-primary {
-    @apply bg-[#19272f] hover:bg-gray-700 text-white px-6;
-  }
-
-  .modal-box .btn {
-    @apply px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200;
-  }
 
   @keyframes modal-appear {
     0% {
@@ -211,12 +219,6 @@
     }
   }
 
-  .modal::backdrop {
-    background: rgba(25, 39, 47, 0.4);
-    backdrop-filter: blur(2px);
-    animation: backdrop-appear 0.3s ease-out forwards;
-  }
-
   @keyframes backdrop-appear {
     from {
       opacity: 0;
@@ -225,6 +227,7 @@
       opacity: 1;
     }
   }
+
 }
 
 /* Custom 3D transforms */

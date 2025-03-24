@@ -84,7 +84,7 @@
             <!-- Modals -->
             <dialog id="assets_modal" class="modal">
               <div class="modal-box">
-                <h3 class="font-bold text-lg flex items-center mb-4">
+                <h3 class="font-bold text-lg flex items-center">
                   <i class="fas fa-gem text-sky-600 mr-2"></i>
                   Assets Details
                 </h3>
@@ -190,10 +190,10 @@
                   <!-- Categories Grid -->
                   <div class="col-span-2">
                     <h4 class="text-sm font-medium text-gray-500 mb-2">Spending by Category</h4>
-                    <div class="grid grid-cols-2 gap-2">
-                      <% @chart_data.select { |_, amount| amount > 0 }.each do |category, amount| %>
-                        <div class="bg-white p-3 rounded border border-gray-200">
-                          <div class="text-sm text-gray-600"><%= category %></div>
+                    <div class="grid grid-cols-4 gap-2">
+                      <% @chart_data.select { |_, amount| amount > 0 }.sort_by { |_, amount| -amount }.each do |category, amount| %>
+                        <div class="bg-white py-3 px-4 rounded border border-gray-200 flex flex-col justify-between h-full">
+                          <div class="text-sm text-gray-600"><%= category[0..13] %></div>
                           <div class="font-semibold">$<%= number_with_precision(amount, precision: 2) %></div>
                         </div>
                       <% end %>

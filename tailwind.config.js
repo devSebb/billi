@@ -7,7 +7,7 @@ module.exports = {
     'text-yellow-500',
     'text-green-500',
     'text-red-500',
-    'text-indigo-500'
+    'text-indigo-500',
+    'btn-gradient'
   ],
-  // ... rest of your config
 }

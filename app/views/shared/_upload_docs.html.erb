@@ -1,5 +1,5 @@
 <div class="dropdown dropdown-left">
-  <div tabindex="0" role="button" class="btn btn-base btn-outline shadow-custom shadow-custom-hover flex items-center gap-2">
+  <div tabindex="0" role="button" class="btn-primary flex items-center gap-2">
     <i class="fas fa-upload icon-secondary"></i>
     Upload Documents
   </div>
@@ -23,7 +23,7 @@
             <%= label_tag :file, "Choose CSV file", class: "form-label" %>
             <%= file_field_tag :file, class: "file-input-custom", accept: ".csv" %>
           </div>
-          <%= submit_tag "Upload CSV", class: "btn-base btn-primary w-full" %>
+          <%= submit_tag "Upload CSV", class: "btn-primary w-full" %>
         <% end %>
 
         <!-- Divider -->
@@ -35,7 +35,7 @@
         <%= form_with url: load_test_data_transactions_path,
                       method: :post,
                       class: "w-full" do |f| %>
-          <%= f.submit "Load Test Data", class: "btn-base btn-secondary w-full" %>
+          <%= f.submit "Load Test Data", class: "btn-secondary w-full" %>
         <% end %>
 
         <!-- Divider -->
@@ -57,7 +57,7 @@
             </div>
           </div>
           <%= f.submit "Connect Bank Account",
-              class: "btn-base w-full bg-blue-500 hover:bg-blue-600 text-white" %>
+              class: "btn-primary w-full bg-blue-500 hover:bg-blue-600" %>
         <% end %>
       </div>
     </li>

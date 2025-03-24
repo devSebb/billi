@@ -29,21 +29,26 @@ class HomeController < ApplicationController
       end
       @upload_count = Current.user.analysis_sessions.count + Current.user.plaid_items.count
       @payments = if params[:query].present?
-        base_transactions.where("amount < 0").reorder("").sum(:amount).abs
+        base_transactions.where("amount < 0").where(category: "Payment").reorder("").sum(:amount).abs
       else
-        base_transactions.where("amount < 0").sum(:amount).abs
+        base_transactions.where("amount < 0").where(category: "Payment").sum(:amount).abs
+      end
+      @credit_transactions = if params[:query].present?
+        base_transactions.where(category: "Credit").reorder("").sum(:amount)
+      else
+        base_transactions.where(category: "Credit").sum(:amount)
       end
       @income_transactions = if params[:query].present?
-        -base_transactions.where("amount < 0").where.not(category: "Payment").reorder("").sum(:amount)
+        -base_transactions.where("amount < 0").where.not(category: [ "Payment", "Credit" ]).reorder("").sum(:amount)
       else
-        -base_transactions.where("amount < 0").where.not(category: "Payment").sum(:amount)
+        -base_transactions.where("amount < 0").where.not(category: [ "Payment", "Credit" ]).sum(:amount)
       end
       @expense_transactions = if params[:query].present?
         base_transactions.where("amount > 0").reorder("").sum(:amount)
       else
         base_transactions.where("amount > 0").sum(:amount)
       end
-      @net_worth = (@income_transactions - @expense_transactions)
+      @net_worth = (@income_transactions - @expense_transactions - @credit_transactions)
       @top_category = if params[:query].present?
         base_transactions
           .where("amount > 0")

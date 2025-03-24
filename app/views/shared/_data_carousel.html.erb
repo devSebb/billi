@@ -28,9 +28,9 @@
       title: 'Payments',
       icon: 'money-bill-wave',
       icon_color: 'text-emerald-500',
-      value: Current.user.transactions.where("amount < 0").count,
+      value: Current.user.transactions.where("amount < 0").where(category: "Payment").count,
       prefix: '',
-      subtitle: "Total: $#{number_with_precision(Current.user.transactions.where('amount < 0').sum(:amount).abs, precision: 2, delimiter: ',')}"
+      subtitle: "Total: $#{number_with_precision(@payments, precision: 2, delimiter: ',')}"
     },
     {
       title: 'Top Category',
@@ -101,13 +101,13 @@
             <% when 'Net Worth' %>
               <div class="grid grid-cols-2 gap-4">
                 <div class="bg-gray-50 p-4 rounded-lg">
-                  <h4 class="text-sm font-medium text-gray-500">Total Income</h4>
+                  <h4 class="text-sm font-medium text-gray-500">Total Assets</h4>
                   <p class="text-xl font-bold text-[#19272f]">
                     $<%= number_with_precision(@income_transactions, precision: 2) %>
                   </p>
                 </div>
                 <div class="bg-gray-50 p-4 rounded-lg">
-                  <h4 class="text-sm font-medium text-gray-500">Total Expenses</h4>
+                  <h4 class="text-sm font-medium text-gray-500">Total Liabilities</h4>
                   <p class="text-xl font-bold text-[#19272f]">
                     $<%= number_with_precision(@expense_transactions, precision: 2) %>
                   </p>
@@ -154,13 +154,13 @@
                 <div class="bg-gray-50 p-4 rounded-lg">
                   <h4 class="text-sm font-medium text-gray-500">Number of Payments</h4>
                   <p class="text-xl font-bold text-[#19272f]">
-                    <%= Current.user.transactions.where("amount < 0").count %>
+                    <%= Current.user.transactions.where("amount < 0").where(category: "Payment").count %>
                   </p>
                 </div>
                 <div class="bg-gray-50 p-4 rounded-lg">
                   <h4 class="text-sm font-medium text-gray-500">Total Amount</h4>
                   <p class="text-xl font-bold text-[#19272f]">
-                    $<%= number_with_precision(Current.user.transactions.where('amount < 0').sum(:amount).abs, precision: 2) %>
+                    $<%= number_with_precision(@payments, precision: 2) %>
                   </p>
                 </div>
               </div>
@@ -172,8 +172,8 @@
                     <%= @top_category %>
                   </p>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                  <% @chart_data.select { |_, amount| amount > 0 }.each do |category, amount| %>
+                <div class="grid grid-cols-3 gap-2">
+                  <% @chart_data.select { |_, amount| amount > 0 }.sort_by { |_, amount| -amount }.each do |category, amount| %>
                     <div class="bg-white p-3 rounded border border-gray-200">
                       <div class="text-sm text-gray-600"><%= category %></div>
                       <div class="font-semibold">$<%= number_with_precision(amount, precision: 2) %></div>
