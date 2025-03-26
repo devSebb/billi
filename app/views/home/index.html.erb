@@ -43,6 +43,8 @@
         <!-- Charts and Stats Section -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
           <!-- Stats Cards -->
+
+          <%# Assets Card %>
           <div class="lg:col-span-1 grid grid-cols-2 lg:grid-cols-1 gap-4">
             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
               <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between cursor-pointer" onclick="assets_modal.showModal()">
@@ -52,10 +54,12 @@
                 </div>
                 <%= image_tag "icons/Diagonal_Arrow.svg", class: "w-3 h-3" %>
               </h3>
-              <p class="text-2xl font-bold text-[#19272f]">
+                            <p class="text-2xl font-bold text-[#19272f]">
                 $<%= number_with_precision(@assets, precision: 2) %>
               </p>
             </div>
+
+            <%# Income Card %>
             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
               <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between cursor-pointer" onclick="income_modal.showModal()">
                 <div class="flex items-center">
@@ -68,6 +72,8 @@
                 $<%= number_with_precision(@income_transactions, precision: 2) %>
               </p>
             </div>
+
+            <%# Spent Card %>
             <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
               <h3 class="text-sm font-medium text-gray-500 mb-1 flex items-center justify-between cursor-pointer" onclick="spent_modal.showModal()">
                 <div class="flex items-center">
@@ -89,29 +95,29 @@
                   Assets Details
                 </h3>
                 <div class="grid grid-cols-2 gap-4">
-                  <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-sm font-medium text-gray-500">Total Assets</h4>
-                    <p class="text-xl font-bold text-[#19272f]">
-                      $<%= number_with_precision(@assets, precision: 2) %>
-                    </p>
-                  </div>
-                  <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-sm font-medium text-gray-500">Cash on Hand</h4>
-                    <p class="text-xl font-bold text-[#19272f]">
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-md">
+                    <span class="text-gray-600">Cash on Hand</span>
+                    <span class="font-medium text-[#19272f]">
                       $<%= number_with_precision(@cash_on_hand, precision: 2) %>
-                    </p>
+                    </span>
                   </div>
-                  <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-sm font-medium text-gray-500">Net Worth</h4>
-                    <p class="text-xl font-bold text-[#19272f]">
-                      $<%= number_with_precision(@net_worth, precision: 2) %>
-                    </p>
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-md">
+                    <span class="text-gray-600">Investments</span>
+                    <span class="font-medium text-[#19272f]">
+                      $<%= number_with_precision(@investments, precision: 2) %>
+                    </span>
                   </div>
-                  <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="text-sm font-medium text-gray-500">Total Payments</h4>
-                    <p class="text-xl font-bold text-[#19272f]">
-                      $<%= number_with_precision(@payments, precision: 2) %>
-                    </p>
+                  <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-md">
+                    <span class="text-gray-600">Salary</span>
+                    <span class="font-medium text-[#19272f]">
+                      $<%= number_with_precision(@salary, precision: 2) %>
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between p-4 mt-4 bg-[#19272f] text-white rounded-lg shadow-md">
+                    <span class="font-medium">Total Assets</span>
+                    <span class="font-bold">
+                      $<%= number_with_precision(@assets, precision: 2) %>
+                    </span>
                   </div>
                 </div>
                 <div class="modal-action">

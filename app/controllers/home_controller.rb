@@ -66,13 +66,21 @@ class HomeController < ApplicationController
           &.first
       end
       @cash_on_hand = base_transactions
-        .where(category: "Cash on Hand")
+        .where("amount < 0 AND category = ?", "Cash on Hand")
         .sum(:amount)
         .abs
-      @assets = base_transactions
-        .where("amount < 0 AND category IN (?)", [ "Cash on Hand", "Investments", "Salary" ])
+
+      @investments = base_transactions
+        .where("amount < 0 AND category = ?", "Investments")
         .sum(:amount)
         .abs
+
+      @salary = base_transactions
+        .where("amount < 0 AND category = ?", "Salary")
+        .sum(:amount)
+        .abs
+
+      @assets = @cash_on_hand + @investments + @salary
       @countries_spent = base_transactions
         .where("amount > 0")
         .distinct

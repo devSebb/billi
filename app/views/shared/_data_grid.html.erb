@@ -1,0 +1,194 @@
+<div class="items-center px-24 mb-32">
+  <h2 class="text-2xl font-bold text-[#19272f] mb-8">Your Financial Overview</h2>
+
+  <% cards_data = [
+    {
+      title: 'Total Spent',
+      icon: 'money-bill-wave',
+      icon_color: 'text-amber-400',
+      value: number_with_precision(@total_spent, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Net Worth',
+      icon: 'coins',
+      icon_color: 'text-sky-600',
+      value: number_with_precision(@net_worth, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Total Transactions',
+      icon: 'shopping-cart',
+      icon_color: 'text-orange-500',
+      value: @total_transactions,
+      prefix: ''
+    },
+    {
+      title: 'Payments',
+      icon: 'credit-card',
+      icon_color: 'text-emerald-500',
+      value: number_with_precision(@payments, precision: 2),
+      prefix: '$',
+      subtitle: "Total Payments Made"
+    },
+    {
+      title: 'Credit Transactions',
+      icon: 'credit-card',
+      icon_color: 'text-purple-500',
+      value: number_with_precision(@credit_transactions, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Income',
+      icon: 'money-bill-trend-up',
+      icon_color: 'text-green-500',
+      value: number_with_precision(@income_transactions, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Expenses',
+      icon: 'money-bill-transfer',
+      icon_color: 'text-red-500',
+      value: number_with_precision(@expense_transactions, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Cash on Hand',
+      icon: 'wallet',
+      icon_color: 'text-yellow-500',
+      value: number_with_precision(@cash_on_hand, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Investments',
+      icon: 'chart-line',
+      icon_color: 'text-blue-500',
+      value: number_with_precision(@investments, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Salary',
+      icon: 'briefcase',
+      icon_color: 'text-indigo-500',
+      value: number_with_precision(@salary, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Total Assets',
+      icon: 'building-columns',
+      icon_color: 'text-teal-500',
+      value: number_with_precision(@assets, precision: 2),
+      prefix: '$'
+    },
+    {
+      title: 'Countries',
+      icon: 'globe-americas',
+      icon_color: 'text-blue-300',
+      value: @countries_spent,
+      prefix: ''
+    }
+  ] %>
+
+  <div class="grid grid-cols-3 divide-x divide-gray-200">
+    <!-- Income & Assets Column -->
+    <div class="pr-6">
+      <h3 class="text-xl font-semibold text-[#19272f] mb-6 flex items-center">
+        <i class="fas fa-money-bill-trend-up text-green-500 mr-2"></i>
+        Income & Assets
+      </h3>
+      <div class="space-y-4">
+        <% [
+          cards_data.find { |c| c[:title] == 'Income' },
+          cards_data.find { |c| c[:title] == 'Salary' },
+          cards_data.find { |c| c[:title] == 'Total Assets' },
+          cards_data.find { |c| c[:title] == 'Cash on Hand' },
+          cards_data.find { |c| c[:title] == 'Investments' }
+        ].compact.each_with_index do |card, index| %>
+          <%= render partial: 'shared/data_card', locals: { card: card, index: "income_#{index}" } %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Expenses & Payments Column -->
+    <div class="px-6">
+      <h3 class="text-xl font-semibold text-[#19272f] mb-6 flex items-center">
+        <i class="fas fa-money-bill-transfer text-red-500 mr-2"></i>
+        Expenses & Payments
+      </h3>
+      <div class="space-y-4">
+        <% [
+          cards_data.find { |c| c[:title] == 'Total Spent' },
+          cards_data.find { |c| c[:title] == 'Expenses' },
+          cards_data.find { |c| c[:title] == 'Payments' },
+          cards_data.find { |c| c[:title] == 'Credit Transactions' }
+        ].compact.each_with_index do |card, index| %>
+          <%= render partial: 'shared/data_card', locals: { card: card, index: "expenses_#{index}" } %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Overview & Statistics Column -->
+    <div class="pl-6">
+      <h3 class="text-xl font-semibold text-[#19272f] mb-6 flex items-center">
+        <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+        Overview & Statistics
+      </h3>
+      <div class="space-y-4">
+        <% [
+          cards_data.find { |c| c[:title] == 'Net Worth' },
+          cards_data.find { |c| c[:title] == 'Total Transactions' },
+          cards_data.find { |c| c[:title] == 'Countries' }
+        ].compact.each_with_index do |card, index| %>
+          <%= render partial: 'shared/data_card', locals: { card: card, index: "overview_#{index}" } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% content_for :styles do %>
+  <style>
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      max-width: 500px;
+      width: 90%;
+    }
+  </style>
+<% end %>
+
+<% content_for :scripts do %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('[data-modal-target]');
+
+      cards.forEach(card => {
+        card.addEventListener('click', () => {
+          const modalId = card.getAttribute('data-modal-target');
+          const modal = document.getElementById(modalId);
+          modal.classList.remove('hidden');
+
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              modal.classList.add('hidden');
+            }
+          });
+        });
+      });
+    });
+  </script>
+<% end %>
